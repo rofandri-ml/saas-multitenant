@@ -7,12 +7,20 @@ datasource db {
   provider = "postgresql"
 }
 
-model Project {
+model Property {
   id             String   @id @default(cuid())
-  name           String
-  organizationId String
+  title          String
+  address        String
+  price          Int
+  operation      String   // "venta" | "alquiler"
+  type           String   // "casa" | "departamento" | "terreno" | "local"
+  description    String?
+  status         String   @default("activa")
+  ownerId        String   // usuario que la publicó (propietario o agente)
+  organizationId String?  // null = propietario directo; con valor = inmobiliaria
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
   @@index([organizationId])
+  @@index([ownerId])
 }

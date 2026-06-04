@@ -21,7 +21,7 @@ export default async function AdminPage() {
     })
 
   // Conteo de proyectos por organización, desde tu base
-  const grouped = await prisma.project.groupBy({
+  const grouped = await prisma.property.groupBy({
     by: ['organizationId'],
     _count: { _all: true },
   })
@@ -38,7 +38,7 @@ export default async function AdminPage() {
             <div>
               <p className="font-semibold">{org.name}</p>
               <p className="text-sm text-gray-500">
-                {org.membersCount ?? 0} miembros · {projectCounts.get(org.id) ?? 0} proyectos
+                {org.membersCount ?? 0} miembros · {projectCounts.get(org.id) ?? 0} propiedades
               </p>
             </div>
             <span className="text-xs text-gray-400">{org.id}</span>
