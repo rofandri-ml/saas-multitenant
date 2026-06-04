@@ -38,7 +38,7 @@ export default async function AdminPage() {
             <div>
               <p className="font-semibold">{org.name}</p>
               <p className="text-sm text-gray-500">
-                {org.membersCount ?? 0} miembros · {projectCounts.get(org.id) ?? 0} propiedades
+                {org.membersCount ?? 0} miembros · {projectCounts.get(org.id) ?? 0} proyectos
               </p>
             </div>
             <span className="text-xs text-gray-400">{org.id}</span>
