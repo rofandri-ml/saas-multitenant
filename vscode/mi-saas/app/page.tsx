@@ -1,6 +1,7 @@
 import { auth, clerkClient } from '@clerk/nextjs/server'
 import prisma from '@/lib/prisma'
 import { createProperty, deleteProperty, closeProperty } from './actions'
+import { DeletePropertyButton } from './delete-property-button'
 
 const statusStyles: Record<string, string> = {
   activa: 'bg-green-100 text-green-700',
@@ -9,9 +10,9 @@ const statusStyles: Record<string, string> = {
 }
 
 export default async function Page() {
-  const { isAuthenticated, userId, orgId, orgRole } = await auth()
+  const { userId, orgId, orgRole } = await auth()
 
-  if (!isAuthenticated) {
+  if (!userId) {
     return <p className="p-8">Iniciá sesión para continuar.</p>
   }
 
@@ -29,7 +30,7 @@ export default async function Page() {
   const properties = await prisma.property.findMany({
     where: orgId
       ? { organizationId: orgId }
-      : { ownerId: userId!, organizationId: null },
+      : { ownerId: userId, organizationId: null },
     orderBy: { createdAt: 'desc' },
   })
 
@@ -112,9 +113,7 @@ export default async function Page() {
                     {canDelete && (
                       <form action={deleteProperty}>
                         <input type="hidden" name="id" value={p.id} />
-                        <button type="submit" className="text-sm border rounded px-3 py-1 text-red-600">
-                          Borrar
-                        </button>
+                        <DeletePropertyButton title={p.title} className="text-sm border rounded px-3 py-1 text-red-600" />
                       </form>
                     )}
                   </div>

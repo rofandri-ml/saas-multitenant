@@ -3,6 +3,11 @@
 
 ### ACTUALIZACION 3/6/2026
 
+> ⚠️ **SUPERADO POR EL BLOQUE `4/6/2026` (más abajo). NO USAR.**
+> Se conserva solo como historial. En particular, su regla *"TODA consulta filtra por
+> `organizationId`"* quedó **obsoleta**: el contexto de cuenta personal usa
+> `organizationId: null` (scope por `ownerId`). La guía vigente es la del 4/6.
+
 # CLAUDE.md
 
 Guía del proyecto para Claude Code. Leé esto antes de tocar el código.
@@ -160,6 +165,14 @@ La entidad central es **`Property`** (la propiedad / aviso). Campos clave: `titl
 - `organizationId` (opcional): `null` = propietario directo; con valor = inmobiliaria.
 
 Al crear: `ownerId = userId`, `organizationId = orgId ?? null`. Al listar / editar / borrar: aplicar el scope del contexto (ver Reglas críticas).
+
+**Permisos por acción (least privilege).** El scope de contexto define *qué* propiedades alcanza cada uno; el rol define *qué* puede hacer con ellas:
+
+- **Crear**: cualquier autenticado publica lo suyo (`ownerId = userId`). Agente y propietario directo por igual.
+- **Cerrar** (marcar `vendida`/`alquilada`): el dueño (`ownerId`) o el `org:admin`. Un agente solo cierra las propias.
+- **Borrar**: **solo `org:admin`** dentro de una inmobiliaria (es irreversible); el propietario directo borra lo suyo. Un agente NO puede borrar.
+
+Implementado en `app/actions.ts` con el helper `ownedOrAdminScope()` (arma el `where` = contexto + dueño/admin) y un guard de rol en `deleteProperty`. La lectura (`findMany`) usa el scope de contexto más amplio: un agente ve todas las de la agencia aunque solo modifique las propias. Las acciones destructivas piden confirmación en la UI.
 
 ## White-label
 
