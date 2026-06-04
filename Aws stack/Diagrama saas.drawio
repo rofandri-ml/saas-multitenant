@@ -1,0 +1,124 @@
+<mxfile host="Electron">
+  <diagram name="Página-1" id="HreKHjO4QUQYB_spDJe3">
+    <mxGraphModel dx="1016" dy="595" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="GpmBpsqDMPwimCXGkvuP-1" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);" value="Base de Datos (Amazon Aurora)" vertex="1">
+          <mxGeometry height="156" width="658" x="50" y="1196" as="geometry" />
+        </mxCell>
+        <mxCell id="GpmBpsqDMPwimCXGkvuP-2" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);" value="Usuarios / Dueños de Negocio" vertex="1">
+          <mxGeometry height="78" width="260" x="197" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="GpmBpsqDMPwimCXGkvuP-3" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);" value="Amazon Route 53 &#xa; DNS" vertex="1">
+          <mxGeometry height="78" width="184" x="118" y="172" as="geometry" />
+        </mxCell>
+        <mxCell id="GpmBpsqDMPwimCXGkvuP-4" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);" value="Amazon CloudFront &#xa; CDN" vertex="1">
+          <mxGeometry height="78" width="200" x="110" y="300" as="geometry" />
+        </mxCell>
+        <mxCell id="GpmBpsqDMPwimCXGkvuP-5" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);" value="AWS Lambda &#xa; Next.js SSR" vertex="1">
+          <mxGeometry height="78" width="150" x="20" y="452" as="geometry" />
+        </mxCell>
+        <mxCell id="GpmBpsqDMPwimCXGkvuP-6" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);" value="Amazon Cognito &#xa; Auth &amp; tenant_id" vertex="1">
+          <mxGeometry height="78" width="183" x="352" y="172" as="geometry" />
+        </mxCell>
+        <mxCell id="GpmBpsqDMPwimCXGkvuP-7" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);" value="Amazon API Gateway" vertex="1">
+          <mxGeometry height="54" width="210" x="265" y="464" as="geometry" />
+        </mxCell>
+        <mxCell id="GpmBpsqDMPwimCXGkvuP-8" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);" value="Lambda Authorizer &#xa; Valida permisos" vertex="1">
+          <mxGeometry height="78" width="195" x="273" y="604" as="geometry" />
+        </mxCell>
+        <mxCell id="GpmBpsqDMPwimCXGkvuP-9" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);" value="AWS Lambda &#xa; Backend Node.js / Drizzle" vertex="1">
+          <mxGeometry height="78" width="247" x="247" y="732" as="geometry" />
+        </mxCell>
+        <mxCell id="GpmBpsqDMPwimCXGkvuP-10" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);" value="Amazon RDS Proxy &#xa; Pool de conexiones" vertex="1">
+          <mxGeometry height="78" width="196" x="272" y="884" as="geometry" />
+        </mxCell>
+        <mxCell id="GpmBpsqDMPwimCXGkvuP-11" parent="1" style="shape=cylinder3;boundedLbl=1;backgroundOutline=1;size=10;strokeWidth=2;whiteSpace=wrap;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);" value="Amazon Aurora Serverless v2 &#xa; PostgreSQL" vertex="1">
+          <mxGeometry height="134" width="215" x="263" y="1012" as="geometry" />
+        </mxCell>
+        <mxCell id="GpmBpsqDMPwimCXGkvuP-12" parent="1" style="shape=cylinder3;boundedLbl=1;backgroundOutline=1;size=10;strokeWidth=2;whiteSpace=wrap;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);" value="Esquema: public &#xa; Configuración SaaS" vertex="1">
+          <mxGeometry height="104" width="151" x="85" y="1223" as="geometry" />
+        </mxCell>
+        <mxCell id="GpmBpsqDMPwimCXGkvuP-13" parent="1" style="shape=cylinder3;boundedLbl=1;backgroundOutline=1;size=10;strokeWidth=2;whiteSpace=wrap;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);" value="Esquema: tenant_abc &#xa; Datos Barbería" vertex="1">
+          <mxGeometry height="106" width="170" x="286" y="1221" as="geometry" />
+        </mxCell>
+        <mxCell id="GpmBpsqDMPwimCXGkvuP-14" parent="1" style="shape=cylinder3;boundedLbl=1;backgroundOutline=1;size=10;strokeWidth=2;whiteSpace=wrap;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);" value="Esquema: tenant_xyz &#xa; Datos Supermercado" vertex="1">
+          <mxGeometry height="106" width="168" x="505" y="1222" as="geometry" />
+        </mxCell>
+        <mxCell id="GpmBpsqDMPwimCXGkvuP-15" edge="1" parent="1" source="GpmBpsqDMPwimCXGkvuP-2" style="curved=1;startArrow=none;endArrow=block;exitX=0.27;exitY=1;entryX=0.5;entryY=0;rounded=0;" target="GpmBpsqDMPwimCXGkvuP-3" value="HTTPS">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="210" y="135" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GpmBpsqDMPwimCXGkvuP-16" edge="1" parent="1" source="GpmBpsqDMPwimCXGkvuP-3" style="curved=1;startArrow=none;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;rounded=0;" target="GpmBpsqDMPwimCXGkvuP-4" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GpmBpsqDMPwimCXGkvuP-17" edge="1" parent="1" source="GpmBpsqDMPwimCXGkvuP-4" style="curved=1;startArrow=none;endArrow=block;exitX=0.21;exitY=1;entryX=0.5;entryY=0;rounded=0;" target="GpmBpsqDMPwimCXGkvuP-5" value="Tráfico Web">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="95" y="415" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GpmBpsqDMPwimCXGkvuP-18" edge="1" parent="1" source="GpmBpsqDMPwimCXGkvuP-2" style="curved=1;startArrow=none;endArrow=block;exitX=0.73;exitY=1;entryX=0.5;entryY=0;rounded=0;" target="GpmBpsqDMPwimCXGkvuP-6" value="Login / Registro">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="444" y="135" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GpmBpsqDMPwimCXGkvuP-19" edge="1" parent="1" source="GpmBpsqDMPwimCXGkvuP-4" style="curved=1;startArrow=none;endArrow=block;exitX=0.91;exitY=1;entryX=0.5;entryY=0;rounded=0;" target="GpmBpsqDMPwimCXGkvuP-7" value="Llamadas API">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="370" y="415" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GpmBpsqDMPwimCXGkvuP-20" edge="1" parent="1" source="GpmBpsqDMPwimCXGkvuP-7" style="curved=1;startArrow=none;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;rounded=0;" target="GpmBpsqDMPwimCXGkvuP-8" value="Verifica JWT">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GpmBpsqDMPwimCXGkvuP-21" edge="1" parent="1" source="GpmBpsqDMPwimCXGkvuP-8" style="curved=1;startArrow=none;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;rounded=0;" target="GpmBpsqDMPwimCXGkvuP-9" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GpmBpsqDMPwimCXGkvuP-22" edge="1" parent="1" source="GpmBpsqDMPwimCXGkvuP-9" style="curved=1;startArrow=none;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;rounded=0;" target="GpmBpsqDMPwimCXGkvuP-10" value="Consultas SQL">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GpmBpsqDMPwimCXGkvuP-23" edge="1" parent="1" source="GpmBpsqDMPwimCXGkvuP-10" style="curved=1;startArrow=none;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;rounded=0;" target="GpmBpsqDMPwimCXGkvuP-11" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GpmBpsqDMPwimCXGkvuP-24" edge="1" parent="1" source="GpmBpsqDMPwimCXGkvuP-11" style="curved=1;startArrow=none;endArrow=block;exitX=0;exitY=0.85;entryX=0.5;entryY=0;rounded=0;" target="GpmBpsqDMPwimCXGkvuP-12" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="160" y="1171" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GpmBpsqDMPwimCXGkvuP-25" edge="1" parent="1" source="GpmBpsqDMPwimCXGkvuP-11" style="curved=1;startArrow=none;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;rounded=0;" target="GpmBpsqDMPwimCXGkvuP-13" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GpmBpsqDMPwimCXGkvuP-26" edge="1" parent="1" source="GpmBpsqDMPwimCXGkvuP-11" style="curved=1;startArrow=none;endArrow=block;exitX=1;exitY=0.84;entryX=0.5;entryY=0;rounded=0;" target="GpmBpsqDMPwimCXGkvuP-14" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="589" y="1171" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
