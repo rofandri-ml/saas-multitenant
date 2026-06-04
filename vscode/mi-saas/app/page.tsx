@@ -1,7 +1,9 @@
 import { auth, clerkClient } from '@clerk/nextjs/server'
 import prisma from '@/lib/prisma'
-import { createProperty, deleteProperty, closeProperty } from './actions'
+import { createProperty, deleteProperty, closeProperty, reopenProperty } from './actions'
 import { DeletePropertyButton } from './delete-property-button'
+import Link from 'next/link'
+import { FREE_LIMIT } from '@/lib/plan'
 
 const statusStyles: Record<string, string> = {
   activa: 'bg-green-100 text-green-700',
@@ -10,7 +12,7 @@ const statusStyles: Record<string, string> = {
 }
 
 export default async function Page() {
-  const { userId, orgId, orgRole } = await auth()
+  const { userId, orgId, orgRole, has } = await auth()
 
   if (!userId) {
     return <p className="p-8">Iniciá sesión para continuar.</p>
@@ -34,6 +36,11 @@ export default async function Page() {
     orderBy: { createdAt: 'desc' },
   })
 
+  // Gating por plan (mismo conteo de contexto que createProperty valida en el servidor).
+  const count = properties.length
+  const unlimited = has({ feature: 'unlimited_properties' })
+  const atLimit = !unlimited && count >= FREE_LIMIT
+
   // Permisos para la UI (el servidor es la frontera real; esto solo evita mostrar
   // botones que el rol no puede usar). Borrar: sin org el dueño, en org solo admin.
   const isOrgAdmin = orgRole === 'org:admin'
@@ -43,32 +50,44 @@ export default async function Page() {
     <main className="p-8 max-w-2xl mx-auto">
       <h1 className="text-2xl font-bold mb-6" style={{ color: accent }}>{heading}</h1>
 
-      <form action={createProperty} className="space-y-3 mb-8 border rounded p-4">
-        <input name="title" placeholder="Título (ej. Depto 2 ambientes en Palermo)" required className="border rounded px-3 py-2 w-full" />
-        <input name="address" placeholder="Dirección" required className="border rounded px-3 py-2 w-full" />
-        <input name="price" type="number" placeholder="Precio" required className="border rounded px-3 py-2 w-full" />
-        <div className="flex gap-3">
-          <select name="operation" className="border rounded px-3 py-2 flex-1">
-            <option value="venta">Venta</option>
-            <option value="alquiler">Alquiler</option>
-          </select>
-          <select name="type" className="border rounded px-3 py-2 flex-1">
-            <option value="casa">Casa</option>
-            <option value="departamento">Departamento</option>
-            <option value="terreno">Terreno</option>
-            <option value="local">Local</option>
-          </select>
+      {atLimit ? (
+        <div className="mb-8 border rounded p-4 bg-amber-50 text-sm">
+          <p>Alcanzaste el límite de tu plan ({FREE_LIMIT} propiedades). Mejorá tu plan para publicar más.</p>
+          <Link href="/pricing" className="underline mt-1 inline-block" style={{ color: accent }}>Ver planes</Link>
         </div>
-        <div className="flex gap-3">
-          <input name="bedrooms" type="number" min={0} placeholder="Dormitorios" className="border rounded px-3 py-2 flex-1" />
-          <input name="bathrooms" type="number" min={0} placeholder="Baños" className="border rounded px-3 py-2 flex-1" />
-          <input name="area" type="number" min={0} placeholder="Superficie (m²)" className="border rounded px-3 py-2 flex-1" />
-        </div>
-        <textarea name="description" placeholder="Descripción" rows={3} className="border rounded px-3 py-2 w-full" />
-        <button type="submit" className="text-white rounded px-4 py-2" style={{ backgroundColor: accent }}>
-          Publicar propiedad
-        </button>
-      </form>
+      ) : (
+        <>
+          <form action={createProperty} className="space-y-3 border rounded p-4">
+            <input name="title" placeholder="Título (ej. Depto 2 ambientes en Palermo)" required className="border rounded px-3 py-2 w-full" />
+            <input name="address" placeholder="Dirección" required className="border rounded px-3 py-2 w-full" />
+            <input name="price" type="number" placeholder="Precio" required className="border rounded px-3 py-2 w-full" />
+            <div className="flex gap-3">
+              <select name="operation" className="border rounded px-3 py-2 flex-1">
+                <option value="venta">Venta</option>
+                <option value="alquiler">Alquiler</option>
+              </select>
+              <select name="type" className="border rounded px-3 py-2 flex-1">
+                <option value="casa">Casa</option>
+                <option value="departamento">Departamento</option>
+                <option value="terreno">Terreno</option>
+                <option value="local">Local</option>
+              </select>
+            </div>
+            <div className="flex gap-3">
+              <input name="bedrooms" type="number" min={0} placeholder="Dormitorios" className="border rounded px-3 py-2 flex-1" />
+              <input name="bathrooms" type="number" min={0} placeholder="Baños" className="border rounded px-3 py-2 flex-1" />
+              <input name="area" type="number" min={0} placeholder="Superficie (m²)" className="border rounded px-3 py-2 flex-1" />
+            </div>
+            <textarea name="description" placeholder="Descripción" rows={3} className="border rounded px-3 py-2 w-full" />
+            <button type="submit" className="text-white rounded px-4 py-2" style={{ backgroundColor: accent }}>
+              Publicar propiedad
+            </button>
+          </form>
+          <p className="text-xs text-gray-500 mt-2 mb-8">
+            {unlimited ? 'Ilimitado' : `${count} de ${FREE_LIMIT} publicadas`}
+          </p>
+        </>
+      )}
 
       <ul className="space-y-2">
         {properties.length === 0 ? (
@@ -83,6 +102,10 @@ export default async function Page() {
 
             // Cerrar: el dueño cierra lo suyo; el admin cierra cualquiera de la org.
             const canClose = p.status === 'activa' && (isOrgAdmin || p.ownerId === userId)
+            // Reabrir (volver a 'activa'): mismo rol que cerrar, pero cuando NO está activa.
+            const canReopen = p.status !== 'activa' && (isOrgAdmin || p.ownerId === userId)
+            // Editar: mismo criterio dueño-o-admin (sin importar el status).
+            const canEdit = isOrgAdmin || p.ownerId === userId
 
             return (
               <li key={p.id} className="border rounded p-4">
@@ -99,14 +122,27 @@ export default async function Page() {
                 {details && <p className="text-sm text-gray-500">{details}</p>}
                 {p.description && <p className="text-sm mt-1">{p.description}</p>}
 
-                {(canClose || canDelete) && (
+                {(canEdit || canClose || canReopen || canDelete) && (
                   <div className="flex gap-2 mt-3">
+                    {canEdit && (
+                      <Link href={`/properties/${p.id}/edit`} className="text-sm border rounded px-3 py-1">
+                        Editar
+                      </Link>
+                    )}
                     {canClose && (
                       <form action={closeProperty}>
                         <input type="hidden" name="id" value={p.id} />
                         <input type="hidden" name="operation" value={p.operation} />
                         <button type="submit" className="text-sm border rounded px-3 py-1">
                           Marcar como {p.operation === 'venta' ? 'vendida' : 'alquilada'}
+                        </button>
+                      </form>
+                    )}
+                    {canReopen && (
+                      <form action={reopenProperty}>
+                        <input type="hidden" name="id" value={p.id} />
+                        <button type="submit" className="text-sm border rounded px-3 py-1">
+                          Marcar como disponible
                         </button>
                       </form>
                     )}

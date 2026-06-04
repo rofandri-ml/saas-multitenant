@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mockup · Portal inmobiliario</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Mulish:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EBE4D5;
+    --surface:#F7F2E8;
+    --surface-2:#F1EADC;
+    --primary:#264E41;
+    --primary-dark:#1D3F34;
+    --accent:#A9603C;
+    --ink:#2C2823;
+    --muted:#7A6F61;
+    --border:#DCD1BD;
+    --radius:16px;
+    --shadow:0 1px 2px rgba(44,40,35,.04), 0 6px 18px rgba(44,40,35,.05);
+    --shadow-hover:0 2px 4px rgba(44,40,35,.05), 0 14px 34px rgba(44,40,35,.09);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:'Mulish',system-ui,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  h1,h2,h3{font-family:'Lora',Georgia,serif;font-weight:600;letter-spacing:-.005em;line-height:1.18}
+  .icon{width:18px;height:18px;stroke:currentColor;stroke-width:1.75;fill:none;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+
+  header{background:rgba(241,234,220,.88);backdrop-filter:saturate(140%) blur(8px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
+  .header-inner{max-width:1120px;margin:0 auto;padding:16px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+  .brand{display:flex;align-items:center;gap:10px;font-family:'Lora',serif;font-weight:600;font-size:21px;color:var(--primary)}
+  .brand-mark{width:34px;height:34px;border-radius:10px;background:var(--primary);color:#F7F2E8;display:flex;align-items:center;justify-content:center}
+  .brand-mark .icon{width:19px;height:19px;stroke-width:2}
+  .header-right{display:flex;align-items:center;gap:14px}
+  .switcher{display:flex;align-items:center;gap:9px;background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:7px 13px;font-size:14px;font-weight:600;cursor:pointer}
+  .switcher .dot{width:22px;height:22px;border-radius:7px;background:var(--accent);color:#F7F2E8;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+  .switcher .icon{width:15px;height:15px;color:var(--muted)}
+  .avatar{width:38px;height:38px;border-radius:50%;background:var(--primary);color:#F7F2E8;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px}
+
+  main{max-width:1120px;margin:0 auto;padding:40px 28px 64px}
+  .eyebrow{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+  .intro{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;margin:8px 0 30px}
+  .intro h1{font-size:38px;margin:6px 0 4px}
+  .tagline{color:var(--muted);font-size:16px;max-width:46ch}
+  .intro-meta{display:flex;align-items:center;gap:14px;flex-shrink:0}
+  .plan-chip{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:var(--primary);background:var(--surface-2);border:1px solid var(--border);padding:8px 13px;border-radius:999px}
+  .plan-chip .icon{width:15px;height:15px}
+  .btn-primary{display:inline-flex;align-items:center;gap:8px;background:var(--primary);color:#F7F2E8;border:none;border-radius:12px;padding:12px 20px;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;box-shadow:var(--shadow);transition:background .18s,transform .18s}
+  .btn-primary:hover{background:var(--primary-dark);transform:translateY(-1px)}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:24px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);transition:box-shadow .22s,transform .22s;display:flex;flex-direction:column}
+  .card:hover{box-shadow:var(--shadow-hover);transform:translateY(-3px)}
+  .photo{position:relative;aspect-ratio:3/2;background:linear-gradient(135deg,#DDD2BD,#C9BCA1)}
+  .photo img{width:100%;height:100%;object-fit:cover;display:block}
+  .photo .ph-icon{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#A99B81}
+  .photo .ph-icon .icon{width:38px;height:38px;stroke-width:1.4}
+  .badge{position:absolute;top:13px;left:13px;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:6px 11px;border-radius:999px}
+  .badge .pip{width:7px;height:7px;border-radius:50%}
+  .badge.activa{background:#E0EAE1;color:#264E41}.badge.activa .pip{background:#264E41}
+  .badge.vendida{background:#EDDDCF;color:#8E4019}.badge.vendida .pip{background:#8E4019}
+  .badge.alquilada{background:#EFE3C5;color:#7B500F}.badge.alquilada .pip{background:#7B500F}
+
+  .card-body{padding:18px 20px 8px;flex:1}
+  .tags{display:flex;gap:7px;margin-bottom:9px}
+  .tag{font-size:12px;font-weight:700;padding:3px 10px;border-radius:7px;background:var(--surface-2);border:1px solid var(--border);color:var(--muted)}
+  .tag.op{color:var(--primary);border-color:#C6D6CD;background:#E7EFEA}
+  .card h3{font-size:21px;margin-bottom:5px}
+  .addr{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:14px;margin-bottom:14px}
+  .addr .icon{width:15px;height:15px}
+  .specs{display:flex;gap:18px;padding:13px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+  .spec{display:flex;align-items:center;gap:7px;font-size:14px;font-weight:600}
+  .spec .icon{width:17px;height:17px;color:var(--accent)}
+  .price{font-family:'Lora',serif;font-weight:600;font-size:26px;color:var(--primary);padding:14px 0 4px}
+  .price .per{font-family:'Mulish';font-size:14px;font-weight:600;color:var(--muted)}
+
+  .card-foot{display:flex;gap:8px;padding:14px 20px 18px}
+  .btn{display:inline-flex;align-items:center;gap:7px;font-family:inherit;font-size:13.5px;font-weight:700;padding:9px 13px;border-radius:10px;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--ink);transition:background .15s}
+  .btn .icon{width:15px;height:15px}
+  .btn:hover{background:var(--surface-2)}
+  .btn.ghost-accent{color:var(--primary);border-color:#C6D6CD}
+  .btn.ghost-accent:hover{background:#E7EFEA}
+  .btn.danger{color:#8E4019;border-color:#E3D0C2;margin-left:auto}
+  .btn.danger:hover{background:#F2E6DC}
+
+  .type-section{max-width:1120px;margin:8px auto 0;padding:28px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius)}
+  .type-section > .lbl{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+  .type-section > h2{font-family:'Mulish';font-weight:700;font-size:19px;margin-bottom:18px}
+  .type-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+  .spec-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px}
+  .spec-card .opt{font-family:'Mulish';font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px}
+  .spec-card .opt b{color:var(--primary)}
+  .spec-card .sample-h{font-size:26px;color:var(--primary);line-height:1.1;margin-bottom:8px}
+  .spec-card .sample-b{font-size:15px;color:var(--ink)}
+  .footnote{text-align:center;color:var(--muted);font-size:13px;margin-top:36px}
+</style>
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <div class="brand">
+      <span class="brand-mark"><svg class="icon" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 9.5V20h14V9.5"/><path d="M10 20v-6h4v6"/></svg></span>
+      Hogar
+    </div>
+    <div class="header-right">
+      <div class="switcher"><span class="dot">IS</span> Inmobiliaria del Sol <svg class="icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>
+      <div class="avatar">GR</div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="intro">
+    <div>
+      <div class="eyebrow">Tu portafolio</div>
+      <h1>Inmobiliaria del Sol</h1>
+      <p class="tagline">Tu próximo hogar, con la confianza de siempre.</p>
+    </div>
+    <div class="intro-meta">
+      <span class="plan-chip"><svg class="icon" viewBox="0 0 24 24"><path d="M12 2l2.4 7.2H22l-6 4.4 2.3 7.2L12 16.4 5.7 20.8 8 13.6 2 9.2h7.6z"/></svg> Plan Pro · ilimitado</span>
+      <button class="btn-primary"><svg class="icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Publicar propiedad</button>
+    </div>
+  </div>
+
+  <div class="grid">
+
+    <article class="card">
+      <div class="photo">
+        <img src="https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=640&q=80" alt="" onerror="this.style.display='none'">
+        <div class="ph-icon"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="8.5" cy="9.5" r="1.5"/></svg></div>
+        <span class="badge activa"><span class="pip"></span> Activa</span>
+      </div>
+      <div class="card-body">
+        <div class="tags"><span class="tag op">Venta</span><span class="tag">Casa</span></div>
+        <h3>Casa con jardín en Palermo</h3>
+        <div class="addr"><svg class="icon" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11a7 7 0 0114 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg> Av. Santa Fe 3400, CABA</div>
+        <div class="specs">
+          <span class="spec"><svg class="icon" viewBox="0 0 24 24"><path d="M3 18v-6a2 2 0 012-2h14a2 2 0 012 2v6"/><path d="M3 18h18M6 10V7a1 1 0 011-1h10a1 1 0 011 1v3"/></svg> 3 amb.</span>
+          <span class="spec"><svg class="icon" viewBox="0 0 24 24"><path d="M4 12h16v3a4 4 0 01-4 4H8a4 4 0 01-4-4z"/><path d="M6 12V6a2 2 0 012-2 2 2 0 012 2"/></svg> 2 baños</span>
+          <span class="spec"><svg class="icon" viewBox="0 0 24 24"><path d="M3 3h18v18H3z"/><path d="M3 9h4M3 15h4M9 21v-4M15 21v-4"/></svg> 120 m²</span>
+        </div>
+        <div class="price">$185.000</div>
+      </div>
+      <div class="card-foot">
+        <button class="btn"><svg class="icon" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg> Editar</button>
+        <button class="btn ghost-accent"><svg class="icon" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg> Marcar vendida</button>
+        <button class="btn danger"><svg class="icon" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="photo">
+        <img src="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=640&q=80" alt="" onerror="this.style.display='none'">
+        <div class="ph-icon"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="8.5" cy="9.5" r="1.5"/></svg></div>
+        <span class="badge alquilada"><span class="pip"></span> Alquilada</span>
+      </div>
+      <div class="card-body">
+        <div class="tags"><span class="tag op">Alquiler</span><span class="tag">Departamento</span></div>
+        <h3>Depto. luminoso en Recoleta</h3>
+        <div class="addr"><svg class="icon" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11a7 7 0 0114 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg> Junín 1200, CABA</div>
+        <div class="specs">
+          <span class="spec"><svg class="icon" viewBox="0 0 24 24"><path d="M3 18v-6a2 2 0 012-2h14a2 2 0 012 2v6"/><path d="M3 18h18M6 10V7a1 1 0 011-1h10a1 1 0 011 1v3"/></svg> 2 amb.</span>
+          <span class="spec"><svg class="icon" viewBox="0 0 24 24"><path d="M4 12h16v3a4 4 0 01-4 4H8a4 4 0 01-4-4z"/><path d="M6 12V6a2 2 0 012-2 2 2 0 012 2"/></svg> 1 baño</span>
+          <span class="spec"><svg class="icon" viewBox="0 0 24 24"><path d="M3 3h18v18H3z"/><path d="M3 9h4M3 15h4M9 21v-4M15 21v-4"/></svg> 65 m²</span>
+        </div>
+        <div class="price">$320.000 <span class="per">/ mes</span></div>
+      </div>
+      <div class="card-foot">
+        <button class="btn"><svg class="icon" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg> Editar</button>
+        <button class="btn ghost-accent"><svg class="icon" viewBox="0 0 24 24"><path d="M3 12a9 9 0 109-9"/><path d="M3 4v4h4"/></svg> Disponible</button>
+        <button class="btn danger"><svg class="icon" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="photo">
+        <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=640&q=80" alt="" onerror="this.style.display='none'">
+        <div class="ph-icon"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="8.5" cy="9.5" r="1.5"/></svg></div>
+        <span class="badge vendida"><span class="pip"></span> Vendida</span>
+      </div>
+      <div class="card-body">
+        <div class="tags"><span class="tag op">Venta</span><span class="tag">Local</span></div>
+        <h3>Local comercial en San Telmo</h3>
+        <div class="addr"><svg class="icon" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11a7 7 0 0114 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg> Defensa 800, CABA</div>
+        <div class="specs">
+          <span class="spec"><svg class="icon" viewBox="0 0 24 24"><path d="M3 21h18M5 21V8l7-4 7 4v13"/><path d="M9 21v-6h6v6"/></svg> Planta baja</span>
+          <span class="spec"><svg class="icon" viewBox="0 0 24 24"><path d="M3 3h18v18H3z"/><path d="M3 9h4M3 15h4M9 21v-4M15 21v-4"/></svg> 85 m²</span>
+        </div>
+        <div class="price">$240.000</div>
+      </div>
+      <div class="card-foot">
+        <button class="btn"><svg class="icon" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg> Editar</button>
+        <button class="btn ghost-accent"><svg class="icon" viewBox="0 0 24 24"><path d="M3 12a9 9 0 109-9"/><path d="M3 4v4h4"/></svg> Disponible</button>
+        <button class="btn danger"><svg class="icon" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>
+      </div>
+    </article>
+
+  </div>
+
+  <section class="type-section">
+    <div class="lbl">Elegí la tipografía</div>
+    <h2>Tres combinaciones del mismo vibe — ¿cuál te gusta?</h2>
+    <div class="type-grid">
+      <div class="spec-card">
+        <div class="opt">Opción A · <b>Lora + Mulish</b> — clásico y sobrio (la del mockup)</div>
+        <div class="sample-h" style="font-family:'Lora',serif">Inmobiliaria del Sol</div>
+        <div class="sample-b" style="font-family:'Mulish',sans-serif">Tu próximo hogar, con la confianza de siempre.</div>
+      </div>
+      <div class="spec-card">
+        <div class="opt">Opción B · <b>Fraunces + Hanken Grotesk</b> — más carácter</div>
+        <div class="sample-h" style="font-family:'Fraunces',serif">Inmobiliaria del Sol</div>
+        <div class="sample-b" style="font-family:'Hanken Grotesk',sans-serif">Tu próximo hogar, con la confianza de siempre.</div>
+      </div>
+      <div class="spec-card">
+        <div class="opt">Opción C · <b>Hanken Grotesk</b> sola — sin serif, muy sobrio</div>
+        <div class="sample-h" style="font-family:'Hanken Grotesk',sans-serif;font-weight:700">Inmobiliaria del Sol</div>
+        <div class="sample-b" style="font-family:'Hanken Grotesk',sans-serif">Tu próximo hogar, con la confianza de siempre.</div>
+      </div>
+    </div>
+  </section>
+
+  <p class="footnote">Mockup de referencia · el recuadro de cada tarjeta es el lugar donde entrarán las fotos.</p>
+</main>
+</body>
+</html>

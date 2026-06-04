@@ -1,26 +1,107 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:is(.dark *));
+
+/* === Tema claro · paleta exacta del mockup (desing/mockup-propiedades.html) === */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --radius: 0.75rem; /* botones ~12px (lg), tarjetas ~16px (xl) */
+
+  --background: #ebe4d5;          /* fondo avena */
+  --foreground: #2c2823;          /* texto gris carbón cálido */
+
+  --card: #f7f2e8;                /* tarjetas pergamino */
+  --card-foreground: #2c2823;
+
+  --popover: #f7f2e8;
+  --popover-foreground: #2c2823;
+
+  --primary: #264e41;             /* verde pino */
+  --primary-foreground: #f7f2e8;  /* pergamino sobre verde */
+
+  --secondary: #f1eadc;           /* superficie secundaria */
+  --secondary-foreground: #2c2823;
+
+  --muted: #f1eadc;
+  --muted-foreground: #7a6f61;    /* texto atenuado */
+
+  --accent: #e7efea;              /* verde muy suave (hover/selección de componentes) */
+  --accent-foreground: #264e41;
+
+  --destructive: #8e4019;         /* rojo terroso (acciones destructivas) */
+  --destructive-foreground: #f7f2e8;
+
+  --border: #dcd1bd;              /* bordes arena */
+  --input: #dcd1bd;
+  --ring: #264e41;                /* foco verde pino */
+
+  --terracotta: #a9603c;          /* acento terracota para detalles (eyebrows, íconos) */
+}
+
+/* Modo oscuro: provisional, se afina después. No se activa sin la clase .dark. */
+.dark {
+  --background: #1f1b16;
+  --foreground: #ece3d4;
+  --card: #2a251e;
+  --card-foreground: #ece3d4;
+  --popover: #2a251e;
+  --popover-foreground: #ece3d4;
+  --primary: #7fb6a0;
+  --primary-foreground: #14201b;
+  --secondary: #2a251e;
+  --secondary-foreground: #ece3d4;
+  --muted: #2a251e;
+  --muted-foreground: #b3a48d;
+  --accent: #2e3a33;
+  --accent-foreground: #ece3d4;
+  --destructive: #c2643a;
+  --destructive-foreground: #14201b;
+  --border: #3a332a;
+  --input: #3a332a;
+  --ring: #7fb6a0;
+  --terracotta: #c2724a;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-terracotta: var(--terracotta);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --font-sans: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-fraunces), ui-serif, Georgia, serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    border-color: var(--border);
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-fraunces), ui-serif, Georgia, serif;
+  }
 }

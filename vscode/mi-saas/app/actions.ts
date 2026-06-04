@@ -2,7 +2,10 @@
 
 import { auth } from '@clerk/nextjs/server'
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 import prisma from '@/lib/prisma'
+import { ownedOrAdminScope } from '@/lib/property-scope'
+import { FREE_LIMIT } from '@/lib/plan'
 
 // Parsea un campo numérico opcional del formulario: '' o inválido -> null.
 function optionalInt(value: FormDataEntryValue | null): number | null {
@@ -11,24 +14,8 @@ function optionalInt(value: FormDataEntryValue | null): number | null {
   return Number.isFinite(n) ? Math.trunc(n) : null
 }
 
-// Conjunto de propiedades sobre las que el usuario puede operar (least privilege):
-//  - sin org (propietario directo): solo las propias.
-//  - org admin: todas las de la org.
-//  - org member: solo las propias dentro de la org.
-// SIEMPRE se combina con el id; nunca se opera por id solo.
-function ownedOrAdminScope(
-  id: string,
-  userId: string,
-  orgId: string | null | undefined,
-  orgRole: string | null | undefined,
-) {
-  if (!orgId) return { id, ownerId: userId, organizationId: null }
-  if (orgRole === 'org:admin') return { id, organizationId: orgId }
-  return { id, organizationId: orgId, ownerId: userId }
-}
-
 export async function createProperty(formData: FormData) {
-  const { userId, orgId } = await auth()
+  const { userId, orgId, has } = await auth()
   if (!userId) return
 
   const title = (formData.get('title') as string)?.trim()
@@ -43,6 +30,15 @@ export async function createProperty(formData: FormData) {
 
   if (!title || !address || !price) return
 
+  // Gating por plan: Free (y cuentas personales) hasta FREE_LIMIT; el feature lo libera.
+  // El conteo usa el scope del contexto (org: toda la agencia; personal: lo propio).
+  if (!has({ feature: 'unlimited_properties' })) {
+    const count = await prisma.property.count({
+      where: orgId ? { organizationId: orgId } : { ownerId: userId, organizationId: null },
+    })
+    if (count >= FREE_LIMIT) return
+  }
+
   await prisma.property.create({
     data: {
       title, address, price, operation, type, description,
@@ -53,6 +49,36 @@ export async function createProperty(formData: FormData) {
   })
 
   revalidatePath('/')
+}
+
+export async function updateProperty(formData: FormData) {
+  const { userId, orgId, orgRole } = await auth()
+  if (!userId) return
+
+  const id = formData.get('id') as string
+  if (!id) return
+
+  const title = (formData.get('title') as string)?.trim()
+  const address = (formData.get('address') as string)?.trim()
+  const price = Number(formData.get('price'))
+  const operation = formData.get('operation') as string
+  const type = formData.get('type') as string
+  const description = (formData.get('description') as string)?.trim() || null
+  const bedrooms = optionalInt(formData.get('bedrooms'))
+  const bathrooms = optionalInt(formData.get('bathrooms'))
+  const area = optionalInt(formData.get('area'))
+
+  if (!title || !address || !price) return
+
+  // Mismo scope que closeProperty: el dueño edita lo suyo; el admin, cualquiera de su org.
+  // No se tocan ownerId/organizationId/status: solo el contenido editable.
+  await prisma.property.updateMany({
+    where: ownedOrAdminScope(id, userId, orgId, orgRole),
+    data: { title, address, price, operation, type, description, bedrooms, bathrooms, area },
+  })
+
+  revalidatePath('/')
+  redirect('/')
 }
 
 export async function deleteProperty(formData: FormData) {
@@ -88,6 +114,23 @@ export async function closeProperty(formData: FormData) {
   await prisma.property.updateMany({
     where: ownedOrAdminScope(id, userId, orgId, orgRole),
     data: { status },
+  })
+
+  revalidatePath('/')
+}
+
+export async function reopenProperty(formData: FormData) {
+  const { userId, orgId, orgRole } = await auth()
+  if (!userId) return
+
+  const id = formData.get('id') as string
+  if (!id) return
+
+  // Inverso de closeProperty: vuelve la propiedad a 'activa' (disponible).
+  // El dueño reabre lo suyo; el admin cualquiera de la org (lo resuelve el scope).
+  await prisma.property.updateMany({
+    where: ownedOrAdminScope(id, userId, orgId, orgRole),
+    data: { status: 'activa' },
   })
 
   revalidatePath('/')
