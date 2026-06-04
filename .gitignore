@@ -1,0 +1,47 @@
+# ==========================================
+# REGLAS GLOBALES (Protegen cualquier carpeta)
+# ==========================================
+node_modules/
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# Testing & Producción generales
+coverage/
+build/
+dist/
+
+# Basura del sistema y debug
+汇.DS_Store
+*.pem
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.vercel
+*.tsbuildinfo
+
+# Archivos de entorno (Claves secretas - ¡Muy importante!)
+.env
+.env.*
+
+# ==========================================
+# REGLAS PARA LA APP FULLSTACK (vscode/mi-saas)
+# ==========================================
+vscode/mi-saas/.next/
+vscode/mi-saas/out/
+vscode/mi-saas/next-env.d.ts
+vscode/mi-saas/app/generated/prisma/
+vscode/mi-saas/app/generated/
+
+# ==========================================
+# REGLAS PARA EL STACK DE AWS (Aws stack)
+# ==========================================
+Aws stack/.aws-sam/
+Aws stack/.cdk.staging/
+Aws stack/cdk.out/
+Aws stack/.serverless/
