@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { ImageUploader } from './image-uploader'
 
 type PropertyValues = {
   id: string
@@ -22,6 +23,7 @@ type PropertyValues = {
   bedrooms: number | null
   bathrooms: number | null
   area: number | null
+  images?: string[]
 }
 
 // Formulario compartido por publicar (/properties/new) y editar (/properties/[id]/edit).
@@ -98,6 +100,8 @@ export function PropertyForm({
         <Label htmlFor="description">Descripción</Label>
         <Textarea id="description" name="description" rows={3} defaultValue={property?.description ?? ''} placeholder="Detalles, comodidades, etc." />
       </div>
+
+      <ImageUploader initialImages={property?.images ?? []} />
 
       <div className="flex gap-3">
         <Button type="submit">{submitLabel}</Button>

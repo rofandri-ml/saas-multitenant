@@ -39,10 +39,12 @@ export async function createProperty(formData: FormData) {
     if (count >= FREE_LIMIT) return
   }
 
+  const images = formData.getAll('images').filter((v): v is string => typeof v === 'string')
+
   await prisma.property.create({
     data: {
       title, address, price, operation, type, description,
-      bedrooms, bathrooms, area,
+      bedrooms, bathrooms, area, images,
       ownerId: userId,
       organizationId: orgId ?? null, // null = propietario directo
     },
@@ -71,11 +73,13 @@ export async function updateProperty(formData: FormData) {
 
   if (!title || !address || !price) return
 
+  const images = formData.getAll('images').filter((v): v is string => typeof v === 'string')
+
   // Mismo scope que closeProperty: el dueño edita lo suyo; el admin, cualquiera de su org.
   // No se tocan ownerId/organizationId/status: solo el contenido editable.
   await prisma.property.updateMany({
     where: ownedOrAdminScope(id, userId, orgId, orgRole),
-    data: { title, address, price, operation, type, description, bedrooms, bathrooms, area },
+    data: { title, address, price, operation, type, description, bedrooms, bathrooms, area, images },
   })
 
   revalidatePath('/')

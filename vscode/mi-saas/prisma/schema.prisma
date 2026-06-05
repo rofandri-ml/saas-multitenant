@@ -18,6 +18,7 @@ model Property {
   bedrooms       Int?
   bathrooms      Int?
   area           Int?     // superficie en m²
+  images         String[] @default([]) // URLs de las imágenes; la primera es la portada
   status         String   @default("activa")
   ownerId        String   // usuario que la publicó (propietario o agente)
   organizationId String?  // null = propietario directo; con valor = inmobiliaria

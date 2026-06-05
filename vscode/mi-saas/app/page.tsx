@@ -1,5 +1,6 @@
 import { auth, clerkClient } from '@clerk/nextjs/server'
 import Link from 'next/link'
+import Image from 'next/image'
 import prisma from '@/lib/prisma'
 import { deleteProperty, closeProperty, reopenProperty } from './actions'
 import { DeletePropertyButton } from './delete-property-button'
@@ -108,8 +109,20 @@ export default async function Page() {
 
             return (
               <Card key={p.id} className="gap-0 py-0 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-                <div className="relative flex aspect-[3/2] items-center justify-center bg-gradient-to-br from-[#ddd2bd] to-[#c9bca1]">
-                  <ImageIcon className="size-9 text-[#a99b81]" />
+                <div className="relative aspect-[3/2] overflow-hidden bg-gradient-to-br from-[#ddd2bd] to-[#c9bca1]">
+                  {p.images.length > 0 ? (
+                    <Image
+                      src={p.images[0]}
+                      alt={p.title}
+                      fill
+                      sizes="(max-width: 640px) 100vw, 360px"
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center">
+                      <ImageIcon className="size-9 text-[#a99b81]" />
+                    </div>
+                  )}
                   <Badge className={cn('absolute left-3 top-3 gap-1.5 border-transparent capitalize', statusStyles[p.status] ?? '')}>
                     <span className="size-1.5 rounded-full bg-current" />
                     {p.status}
