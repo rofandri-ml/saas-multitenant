@@ -1,6 +1,7 @@
 import { auth, clerkClient } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import prisma from '@/lib/prisma'
+import { Building2Icon } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { deleteOrganization } from './actions'
@@ -92,7 +93,10 @@ export default async function AdminPage() {
           </tbody>
         </table>
         {organizations.length === 0 && (
-          <p className="px-5 py-6 text-center text-sm text-slate-400">No hay inmobiliarias todavía.</p>
+          <div className="flex flex-col items-center gap-2 px-5 py-12 text-center">
+            <Building2Icon className="size-8 text-slate-600" />
+            <p className="text-sm text-slate-400">Todavía no hay inmobiliarias registradas.</p>
+          </div>
         )}
       </Card>
     </div>

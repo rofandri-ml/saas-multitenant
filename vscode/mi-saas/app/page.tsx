@@ -20,6 +20,7 @@ import {
   CheckIcon,
   RotateCcwIcon,
   ImageIcon,
+  HomeIcon,
 } from 'lucide-react'
 
 // Colores de badge por status, según el mockup (desing/mockup-propiedades.html).
@@ -96,7 +97,20 @@ export default async function Page() {
 
       {/* Listado */}
       {properties.length === 0 ? (
-        <p className="text-muted-foreground">Todavía no hay propiedades publicadas.</p>
+        <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-card/40 px-6 py-16 text-center">
+          <div className="flex size-12 items-center justify-center rounded-full bg-secondary text-muted-foreground">
+            <HomeIcon className="size-6" />
+          </div>
+          <div>
+            <p className="font-serif text-lg font-semibold text-foreground">Todavía no hay propiedades</p>
+            <p className="mt-1 text-sm text-muted-foreground">Publicá tu primera propiedad para empezar tu portafolio.</p>
+          </div>
+          {!atLimit && (
+            <Button asChild className="mt-1">
+              <Link href="/properties/new"><PlusIcon /> Publicar propiedad</Link>
+            </Button>
+          )}
+        </div>
       ) : (
         <div className="grid grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] gap-6">
           {properties.map((p) => {
@@ -109,6 +123,7 @@ export default async function Page() {
 
             return (
               <Card key={p.id} className="gap-0 py-0 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+                <Link href={`/properties/${p.id}`} className="flex flex-1 flex-col">
                 <div className="relative aspect-[3/2] overflow-hidden bg-gradient-to-br from-[#ddd2bd] to-[#c9bca1]">
                   {p.images.length > 0 ? (
                     <Image
@@ -162,6 +177,7 @@ export default async function Page() {
                     )}
                   </div>
                 </CardContent>
+                </Link>
 
                 {(canEdit || canClose || canReopen || canDelete) && (
                   <CardFooter className="gap-2">

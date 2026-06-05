@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { ImageUploader } from './image-uploader'
+import { SubmitButton } from '@/app/submit-button'
 
 type PropertyValues = {
   id: string
@@ -42,18 +43,18 @@ export function PropertyForm({
       {property && <input type="hidden" name="id" value={property.id} />}
 
       <div className="space-y-1.5">
-        <Label htmlFor="title">Título</Label>
+        <Label htmlFor="title">Título <span className="text-destructive" aria-hidden="true">*</span></Label>
         <Input id="title" name="title" required defaultValue={property?.title} placeholder="Ej. Casa con jardín en Palermo" />
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="address">Dirección</Label>
+        <Label htmlFor="address">Dirección <span className="text-destructive" aria-hidden="true">*</span></Label>
         <Input id="address" name="address" required defaultValue={property?.address} placeholder="Ej. Av. Santa Fe 3400, CABA" />
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="price">Precio</Label>
-        <Input id="price" name="price" type="number" min={0} required defaultValue={property?.price} placeholder="185000" />
+        <Label htmlFor="price">Precio <span className="text-destructive" aria-hidden="true">*</span></Label>
+        <Input id="price" name="price" type="number" min={0} step={1} required defaultValue={property?.price} placeholder="185000" />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -104,7 +105,7 @@ export function PropertyForm({
       <ImageUploader initialImages={property?.images ?? []} />
 
       <div className="flex gap-3">
-        <Button type="submit">{submitLabel}</Button>
+        <SubmitButton>{submitLabel}</SubmitButton>
         <Button variant="outline" asChild>
           <Link href="/">Cancelar</Link>
         </Button>

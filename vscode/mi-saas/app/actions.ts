@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation'
 import prisma from '@/lib/prisma'
 import { ownedOrAdminScope } from '@/lib/property-scope'
 import { FREE_LIMIT } from '@/lib/plan'
+import { del } from '@vercel/blob'
 
 // Parsea un campo numérico opcional del formulario: '' o inválido -> null.
 function optionalInt(value: FormDataEntryValue | null): number | null {
@@ -75,12 +76,27 @@ export async function updateProperty(formData: FormData) {
 
   const images = formData.getAll('images').filter((v): v is string => typeof v === 'string')
 
+  const where = ownedOrAdminScope(id, userId, orgId, orgRole)
+
+  // Imágenes anteriores (mismo scope) para detectar las que se quitaron.
+  const previous = await prisma.property.findFirst({ where, select: { images: true } })
+
   // Mismo scope que closeProperty: el dueño edita lo suyo; el admin, cualquiera de su org.
   // No se tocan ownerId/organizationId/status: solo el contenido editable.
   await prisma.property.updateMany({
-    where: ownedOrAdminScope(id, userId, orgId, orgRole),
+    where,
     data: { title, address, price, operation, type, description, bedrooms, bathrooms, area, images },
   })
+
+  // Limpieza de blobs: borrar del store las imágenes que ya no se usan (best-effort).
+  const removed = previous?.images.filter((url) => !images.includes(url)) ?? []
+  if (removed.length) {
+    try {
+      await del(removed)
+    } catch (e) {
+      console.error('No se pudieron borrar los blobs quitados:', e)
+    }
+  }
 
   revalidatePath('/')
   redirect('/')
@@ -97,9 +113,21 @@ export async function deleteProperty(formData: FormData) {
   // (Sin org, el propietario directo borra lo suyo vía el scope.)
   if (orgId && orgRole !== 'org:admin') return
 
-  await prisma.property.deleteMany({
-    where: ownedOrAdminScope(id, userId, orgId, orgRole),
-  })
+  const where = ownedOrAdminScope(id, userId, orgId, orgRole)
+
+  // Tomamos las imágenes (con el mismo scope) antes de borrar la propiedad.
+  const property = await prisma.property.findFirst({ where, select: { images: true } })
+
+  await prisma.property.deleteMany({ where })
+
+  // Limpieza de blobs huérfanos (best-effort: no frena la operación).
+  if (property?.images.length) {
+    try {
+      await del(property.images)
+    } catch (e) {
+      console.error('No se pudieron borrar los blobs de la propiedad:', e)
+    }
+  }
 
   revalidatePath('/')
 }

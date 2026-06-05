@@ -4,7 +4,7 @@ import { updateBranding } from './actions'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Button } from '@/components/ui/button'
+import { SubmitButton } from '@/app/submit-button'
 
 export default async function SettingsPage() {
   const { orgId, orgRole } = await auth()
@@ -43,7 +43,7 @@ export default async function SettingsPage() {
             />
             <p className="text-xs text-muted-foreground">Se usa en el título de tu portafolio.</p>
           </div>
-          <Button type="submit">Guardar</Button>
+          <SubmitButton>Guardar</SubmitButton>
         </form>
       </Card>
     </div>
