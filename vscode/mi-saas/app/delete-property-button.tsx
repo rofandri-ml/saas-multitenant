@@ -1,20 +1,25 @@
 'use client'
 
-// Botón de borrado con confirmación. Vive dentro del <form action={deleteProperty}>
-// del Server Component: si el usuario cancela, frena el submit; si confirma, deja
-// que el form se envíe normalmente. El servidor sigue siendo la frontera real.
-export function DeletePropertyButton({ title, className }: { title: string; className?: string }) {
+import { Trash2Icon } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+
+// Botón de borrado (ícono) con confirmación. Vive dentro del <form action={deleteProperty}>:
+// si el usuario cancela, frena el submit. El servidor sigue siendo la frontera real.
+export function DeletePropertyButton({ title }: { title: string }) {
   return (
-    <button
+    <Button
       type="submit"
-      className={className}
+      variant="outline"
+      size="icon"
+      aria-label={`Borrar ${title}`}
+      className="text-destructive hover:bg-destructive/10 hover:text-destructive"
       onClick={(e) => {
         if (!window.confirm(`¿Seguro que querés borrar "${title}"? Esta acción no se puede deshacer.`)) {
           e.preventDefault()
         }
       }}
     >
-      Borrar
-    </button>
+      <Trash2Icon />
+    </Button>
   )
 }

@@ -49,6 +49,7 @@ export async function createProperty(formData: FormData) {
   })
 
   revalidatePath('/')
+  redirect('/')
 }
 
 export async function updateProperty(formData: FormData) {

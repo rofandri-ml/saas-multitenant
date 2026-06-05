@@ -112,11 +112,11 @@ Hay **dos tipos de publicador**, y conviven en la misma app:
 ## Stack
 
 - **Framework**: Next.js 16 (App Router) + TypeScript estricto. **Sin carpeta `src/`**: el código vive en `app/`.
-- **Auth + multi-tenancy + billing**: Clerk. Organizations = inmobiliarias. Billing con Clerk Billing (Stripe por debajo), planes "for Organizations".
+- **Auth + multi-tenancy + billing**: Clerk. Organizations = inmobiliarias. Billing con Clerk Billing (Stripe por debajo), planes "for Organizations". UI de Clerk **localizada al español** (`@clerk/localizations` → `esES` en `<ClerkProvider>`).
 - **Base de datos**: PostgreSQL en Neon, con Prisma v7.
-- **UI**: Tailwind CSS v4 (sin archivo de config; se configura desde el CSS).
+- **UI**: Tailwind CSS v4 (config desde el CSS) + **shadcn/ui** (componentes en `components/ui/`, sobre `radix-ui`) + **lucide-react** (íconos). Fuentes con `next/font/google`: **Fraunces** (títulos) y **Hanken Grotesk** (cuerpo).
 - **Deploy**: Vercel.
-- **Entorno local**: Windows nativo, terminal PowerShell, Node 22, pnpm.
+- **Entorno local**: Windows nativo, terminal PowerShell, Node 22, **pnpm 10**.
 
 ## Detalles del stack que importan (gotchas)
 
@@ -127,17 +127,26 @@ Hay **dos tipos de publicador**, y conviven en la misma app:
   - `npx prisma migrate dev --name x` → crea/cambia la tabla en Neon **y** regenera el cliente.
   - `npx prisma generate` → solo regenera el cliente (cuando la tabla ya existe pero el cliente quedó viejo).
 - **Entorno**: todas las variables en un único `.env` en la raíz. El `.env.example` solo tiene placeholders.
+- **pnpm 10 (importante)**: el `node_modules` está linkeado al store **v10**. NO uses `npx pnpm`/`npx shadcn@latest` "pelados" (traen pnpm 11 → `ERR_PNPM_UNEXPECTED_STORE`). Para agregar deps: `pnpm add ...` (tu pnpm local es v10) o `npx pnpm@10 add ...`. El tooling (tsc/eslint/prisma) se corre con `npx` (ej. `npx tsc --noEmit`, `npx eslint .`).
+- **shadcn**: `components.json` ya está. Agregar componentes con `npx shadcn@latest add <c>` (crea archivos en `components/ui/`; deps + `lib/utils.ts` con `cn` ya instalados).
 
 ## Estructura
 
-- `app/` — rutas y páginas (App Router)
-- `app/admin/` — panel de Super Admin (todas las inmobiliarias)
-- `app/settings/` — personalización del tenant (white-label, solo admin)
+- `app/page.tsx` — home: portafolio de propiedades (grilla de tarjetas shadcn)
+- `app/properties/new/` — publicar propiedad · `app/properties/[id]/edit/` — editar
+- `app/properties/property-form.tsx` — **form compartido** (publicar/editar)
+- `app/admin/` — back-office de Super Admin (oscuro/neutro); `app/admin/actions.ts` (`deleteOrganization`)
+- `app/settings/` — white-label del tenant (solo admin)
 - `app/pricing/` — tabla de planes (`<PricingTable />` de Clerk)
-- `app/actions.ts`, `app/settings/actions.ts` — Server Actions
-- `lib/prisma.ts` — cliente de Prisma (singleton)
-- `prisma/` — `schema.prisma` y migraciones
-- `app/generated/prisma/` — cliente generado (NO versionar)
+- `app/actions.ts` — Server Actions de Property (create/update/delete/close/reopen)
+- `app/settings/actions.ts` — `updateBranding`
+- `app/*-button.tsx`, `app/admin/*-button.tsx` — componentes cliente para confirmar borrados
+- `app/layout.tsx` — shell: header (marca + nav) + `<ClerkProvider>` + contenedor
+- `app/globals.css` — Tailwind v4 + tokens del tema (paleta cálida)
+- `components/ui/` — componentes shadcn (no editar a mano salvo necesidad)
+- `lib/prisma.ts` (singleton) · `lib/property-scope.ts` (`ownedOrAdminScope`) · `lib/plan.ts` (`FREE_LIMIT`) · `lib/utils.ts` (`cn`)
+- `prisma/` — `schema.prisma` y migraciones · `app/generated/prisma/` — cliente generado (NO versionar)
+- `desing/mockup-propiedades.html` — **mockup de referencia** del diseño (paleta + tipografías)
 
 ## Comandos
 
@@ -168,15 +177,31 @@ Al crear: `ownerId = userId`, `organizationId = orgId ?? null`. Al listar / edit
 
 **Permisos por acción (least privilege).** El scope de contexto define *qué* propiedades alcanza cada uno; el rol define *qué* puede hacer con ellas:
 
-- **Crear**: cualquier autenticado publica lo suyo (`ownerId = userId`). Agente y propietario directo por igual.
-- **Cerrar** (marcar `vendida`/`alquilada`): el dueño (`ownerId`) o el `org:admin`. Un agente solo cierra las propias.
-- **Borrar**: **solo `org:admin`** dentro de una inmobiliaria (es irreversible); el propietario directo borra lo suyo. Un agente NO puede borrar.
+- **Crear** (`createProperty`): cualquier autenticado publica lo suyo (`ownerId = userId`). Form en `/properties/new`. Sujeto al **límite de plan** (ver "Plan / gating").
+- **Editar** (`updateProperty`): el dueño (`ownerId`) o el `org:admin`. Form en `/properties/[id]/edit`. Solo toca el contenido (no `ownerId`/`organizationId`/`status`).
+- **Cerrar** (`closeProperty`): marca `vendida`/`alquilada`. Dueño o `org:admin`.
+- **Reabrir** (`reopenProperty`): vuelve a `activa` (inverso de cerrar). Dueño o `org:admin`.
+- **Borrar** (`deleteProperty`): **solo `org:admin`** dentro de una inmobiliaria (irreversible); el propietario directo borra lo suyo. Un agente NO puede borrar.
 
-Implementado en `app/actions.ts` con el helper `ownedOrAdminScope()` (arma el `where` = contexto + dueño/admin) y un guard de rol en `deleteProperty`. La lectura (`findMany`) usa el scope de contexto más amplio: un agente ve todas las de la agencia aunque solo modifique las propias. Las acciones destructivas piden confirmación en la UI.
+Implementado en `app/actions.ts` con el helper `ownedOrAdminScope()` de `lib/property-scope.ts` (arma el `where` = contexto + dueño/admin) y un guard de rol en `deleteProperty`. La lectura (`findMany`) usa el scope de contexto más amplio: un agente ve todas las de la agencia aunque solo modifique las propias. Las acciones destructivas piden confirmación en la UI (componentes cliente con `window.confirm`).
+
+## Plan / gating
+
+- `FREE_LIMIT = 3` (`lib/plan.ts`): Free y cuentas personales publican hasta 3 propiedades.
+- Feature `unlimited_properties` (plan Pro) → ilimitado.
+- Chequeo **server-side** en `createProperty` (cuenta del contexto vía `has({ feature })`). En la UI: chip "X de 3"/"Ilimitado"; al llegar al límite, en vez del botón Publicar se muestra un aviso con link a `/pricing`. El check del servidor es la frontera real.
+
+## UI / Diseño
+
+- Referencia exacta de paleta y tipografías: **`desing/mockup-propiedades.html`**.
+- **Paleta cálida** (tokens shadcn en `globals.css`): fondo avena, tarjetas pergamino, primario **verde pino** (`--primary`), texto carbón, bordes arena, **acento terracota** (`--terracotta`) para detalles. Modo oscuro: provisional (a afinar).
+- **Tipografías**: Fraunces (headings → `font-serif`) + Hanken Grotesk (cuerpo → `font-sans`), cargadas con `next/font` en `layout.tsx` y ruteadas en `globals.css` (`@layer base`).
+- **Header (shell)**: sticky, pergamino translúcido; marca "Hogar" (link a `/`); nav — Propiedades/Planes (logueados), Ajustes (`org:admin`), Plataforma (Super Admin) — + `OrganizationSwitcher`/`UserButton`. `<ClerkProvider>` con `appearance` (paleta) + `localization={esES}`.
+- **Back-office `/admin`**: look propio **oscuro/neutro (slate)**, distinto de la marca cálida; encabezado en sans, tarjetas-resumen (métricas) y tabla de inmobiliarias. Incluye **borrar organización** (`deleteOrganization`): chequea `SUPER_ADMIN_IDS`, borra las propiedades de la org y luego la org en Clerk. Solo Super Admin, con confirmación.
 
 ## White-label
 
-El branding por inmobiliaria (lema, color) se guarda en el `publicMetadata` de la organización en Clerk, vía `updateOrganizationMetadata` (solo admin). Se lee de `organization.publicMetadata`. En cuenta personal no hay branding: se usan valores por defecto.
+El branding por inmobiliaria (lema, color de acento) se guarda en el `publicMetadata` de la organización en Clerk, vía `updateOrganizationMetadata` (solo admin). Se lee de `organization.publicMetadata`. El `accentColor` pinta el título del portafolio (fallback al verde pino del tema); el resto usa la paleta. En cuenta personal no hay branding: se usan valores por defecto.
 
 ## Billing
 

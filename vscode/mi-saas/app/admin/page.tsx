@@ -1,6 +1,10 @@
 import { auth, clerkClient } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import prisma from '@/lib/prisma'
+import { Card } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { deleteOrganization } from './actions'
+import { DeleteOrganizationButton } from './delete-organization-button'
 
 export default async function AdminPage() {
   const { userId } = await auth()
@@ -27,24 +31,70 @@ export default async function AdminPage() {
   })
   const projectCounts = new Map(grouped.map((g) => [g.organizationId, g._count._all]))
 
-  return (
-    <main className="p-8 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold mb-1">Panel de Super Admin</h1>
-      <p className="text-sm text-gray-500 mb-6">{totalCount} organizaciones en total</p>
+  // Métricas de resumen, calculadas de los datos ya traídos (sin nuevas consultas).
+  const totalProperties = grouped.reduce((sum, g) => sum + g._count._all, 0)
+  const totalMembers = organizations.reduce((sum, o) => sum + (o.membersCount ?? 0), 0)
+  const metrics = [
+    { label: 'Inmobiliarias', value: totalCount },
+    { label: 'Propiedades', value: totalProperties },
+    { label: 'Miembros', value: totalMembers },
+  ]
 
-      <ul className="space-y-2">
-        {organizations.map((org) => (
-          <li key={org.id} className="border rounded p-4 flex justify-between items-center">
-            <div>
-              <p className="font-semibold">{org.name}</p>
-              <p className="text-sm text-gray-500">
-                {org.membersCount ?? 0} miembros · {projectCounts.get(org.id) ?? 0} propiedades
-              </p>
-            </div>
-            <span className="text-xs text-gray-400">{org.id}</span>
-          </li>
+  return (
+    <div className="rounded-2xl bg-slate-900 p-6 text-slate-100 ring-1 ring-slate-800 sm:p-8">
+      <header className="mb-6">
+        <h1 className="font-sans text-2xl font-semibold tracking-tight text-white">Panel de plataforma</h1>
+        <p className="mt-1 text-sm text-slate-400">{totalCount} inmobiliarias en total</p>
+      </header>
+
+      {/* Tarjetas-resumen */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {metrics.map((m) => (
+          <Card key={m.label} className="gap-1 bg-slate-800 px-5 text-slate-100 ring-slate-700">
+            <div className="text-xs font-medium uppercase tracking-wide text-slate-400">{m.label}</div>
+            <div className="text-3xl font-semibold tabular-nums">{m.value}</div>
+          </Card>
         ))}
-      </ul>
-    </main>
+      </div>
+
+      {/* Inmobiliarias */}
+      <Card className="mt-6 gap-0 bg-slate-800 p-0 ring-slate-700">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-slate-700 text-left text-xs uppercase tracking-wide text-slate-400">
+              <th className="px-5 py-3 font-medium">Inmobiliaria</th>
+              <th className="px-5 py-3 font-medium">Miembros</th>
+              <th className="px-5 py-3 text-right font-medium">Propiedades</th>
+              <th className="px-5 py-3 text-right font-medium">Acciones</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-700/60">
+            {organizations.map((org) => (
+              <tr key={org.id} className="transition-colors hover:bg-slate-700/30">
+                <td className="px-5 py-3">
+                  <div className="font-medium text-slate-100">{org.name}</div>
+                  <div className="font-mono text-xs text-slate-500">{org.id}</div>
+                </td>
+                <td className="px-5 py-3 tabular-nums text-slate-300">{org.membersCount ?? 0}</td>
+                <td className="px-5 py-3 text-right">
+                  <Badge className="border-transparent bg-slate-700 tabular-nums text-slate-100">
+                    {projectCounts.get(org.id) ?? 0}
+                  </Badge>
+                </td>
+                <td className="px-5 py-3 text-right">
+                  <form action={deleteOrganization} className="inline-flex">
+                    <input type="hidden" name="organizationId" value={org.id} />
+                    <DeleteOrganizationButton name={org.name} />
+                  </form>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {organizations.length === 0 && (
+          <p className="px-5 py-6 text-center text-sm text-slate-400">No hay inmobiliarias todavía.</p>
+        )}
+      </Card>
+    </div>
   )
 }

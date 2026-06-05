@@ -1,32 +1,51 @@
 import { auth, clerkClient } from '@clerk/nextjs/server'
-import prisma from '@/lib/prisma'
-import { createProperty, deleteProperty, closeProperty, reopenProperty } from './actions'
-import { DeletePropertyButton } from './delete-property-button'
 import Link from 'next/link'
+import prisma from '@/lib/prisma'
+import { deleteProperty, closeProperty, reopenProperty } from './actions'
+import { DeletePropertyButton } from './delete-property-button'
 import { FREE_LIMIT } from '@/lib/plan'
+import { cn } from '@/lib/utils'
+import { Card, CardContent, CardFooter } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import {
+  StarIcon,
+  PlusIcon,
+  MapPinIcon,
+  BedDoubleIcon,
+  BathIcon,
+  RulerIcon,
+  PencilIcon,
+  CheckIcon,
+  RotateCcwIcon,
+  ImageIcon,
+} from 'lucide-react'
 
+// Colores de badge por status, según el mockup (desing/mockup-propiedades.html).
 const statusStyles: Record<string, string> = {
-  activa: 'bg-green-100 text-green-700',
-  vendida: 'bg-blue-100 text-blue-700',
-  alquilada: 'bg-amber-100 text-amber-700',
+  activa: 'bg-[#e0eae1] text-[#264e41]',
+  vendida: 'bg-[#edddcf] text-[#8e4019]',
+  alquilada: 'bg-[#efe3c5] text-[#7b500f]',
 }
 
 export default async function Page() {
   const { userId, orgId, orgRole, has } = await auth()
 
   if (!userId) {
-    return <p className="p-8">Iniciá sesión para continuar.</p>
+    return <p className="text-muted-foreground">Iniciá sesión para continuar.</p>
   }
 
   // Contexto: inmobiliaria (org activa) o propietario directo (cuenta personal)
   let heading = 'Mis propiedades'
-  let accent = '#6c47ff'
+  let tagline: string | undefined
+  let accentColor: string | undefined
   if (orgId) {
     const client = await clerkClient()
     const org = await client.organizations.getOrganization({ organizationId: orgId })
-    const branding = (org.publicMetadata ?? {}) as { accentColor?: string }
+    const branding = (org.publicMetadata ?? {}) as { tagline?: string; accentColor?: string }
     heading = org.name
-    accent = branding.accentColor ?? accent
+    tagline = branding.tagline
+    accentColor = branding.accentColor
   }
 
   const properties = await prisma.property.findMany({
@@ -41,124 +60,133 @@ export default async function Page() {
   const unlimited = has({ feature: 'unlimited_properties' })
   const atLimit = !unlimited && count >= FREE_LIMIT
 
-  // Permisos para la UI (el servidor es la frontera real; esto solo evita mostrar
-  // botones que el rol no puede usar). Borrar: sin org el dueño, en org solo admin.
+  // Permisos para la UI (el servidor es la frontera real). Borrar: sin org el dueño, en org solo admin.
   const isOrgAdmin = orgRole === 'org:admin'
   const canDelete = !orgId || isOrgAdmin
 
   return (
-    <main className="p-8 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6" style={{ color: accent }}>{heading}</h1>
-
-      {atLimit ? (
-        <div className="mb-8 border rounded p-4 bg-amber-50 text-sm">
-          <p>Alcanzaste el límite de tu plan ({FREE_LIMIT} propiedades). Mejorá tu plan para publicar más.</p>
-          <Link href="/pricing" className="underline mt-1 inline-block" style={{ color: accent }}>Ver planes</Link>
+    <>
+      {/* Intro */}
+      <div className="mb-8 flex flex-wrap items-end justify-between gap-6">
+        <div>
+          <div className="text-[13px] font-bold uppercase tracking-[0.08em] text-terracotta">Tu portafolio</div>
+          <h1 className="mt-1 font-serif text-4xl font-semibold text-primary" style={{ color: accentColor }}>{heading}</h1>
+          {tagline && <p className="mt-1 max-w-[46ch] text-muted-foreground">{tagline}</p>}
         </div>
+        <div className="flex shrink-0 flex-wrap items-center gap-3.5">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-3 py-1.5 text-[13px] font-semibold text-primary">
+            <StarIcon className="size-3.5" />
+            {unlimited ? 'Ilimitado' : `${count} de ${FREE_LIMIT}`}
+          </span>
+          {atLimit ? (
+            <div className="rounded-xl border border-border bg-card px-4 py-2.5 text-sm">
+              <p className="text-muted-foreground">Alcanzaste el límite de tu plan ({FREE_LIMIT} propiedades).</p>
+              <Link href="/pricing" className="font-semibold text-primary underline underline-offset-2">
+                Mejorá tu plan para publicar más
+              </Link>
+            </div>
+          ) : (
+            <Button asChild>
+              <Link href="/properties/new"><PlusIcon /> Publicar propiedad</Link>
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Listado */}
+      {properties.length === 0 ? (
+        <p className="text-muted-foreground">Todavía no hay propiedades publicadas.</p>
       ) : (
-        <>
-          <form action={createProperty} className="space-y-3 border rounded p-4">
-            <input name="title" placeholder="Título (ej. Depto 2 ambientes en Palermo)" required className="border rounded px-3 py-2 w-full" />
-            <input name="address" placeholder="Dirección" required className="border rounded px-3 py-2 w-full" />
-            <input name="price" type="number" placeholder="Precio" required className="border rounded px-3 py-2 w-full" />
-            <div className="flex gap-3">
-              <select name="operation" className="border rounded px-3 py-2 flex-1">
-                <option value="venta">Venta</option>
-                <option value="alquiler">Alquiler</option>
-              </select>
-              <select name="type" className="border rounded px-3 py-2 flex-1">
-                <option value="casa">Casa</option>
-                <option value="departamento">Departamento</option>
-                <option value="terreno">Terreno</option>
-                <option value="local">Local</option>
-              </select>
-            </div>
-            <div className="flex gap-3">
-              <input name="bedrooms" type="number" min={0} placeholder="Dormitorios" className="border rounded px-3 py-2 flex-1" />
-              <input name="bathrooms" type="number" min={0} placeholder="Baños" className="border rounded px-3 py-2 flex-1" />
-              <input name="area" type="number" min={0} placeholder="Superficie (m²)" className="border rounded px-3 py-2 flex-1" />
-            </div>
-            <textarea name="description" placeholder="Descripción" rows={3} className="border rounded px-3 py-2 w-full" />
-            <button type="submit" className="text-white rounded px-4 py-2" style={{ backgroundColor: accent }}>
-              Publicar propiedad
-            </button>
-          </form>
-          <p className="text-xs text-gray-500 mt-2 mb-8">
-            {unlimited ? 'Ilimitado' : `${count} de ${FREE_LIMIT} publicadas`}
-          </p>
-        </>
-      )}
-
-      <ul className="space-y-2">
-        {properties.length === 0 ? (
-          <li className="text-gray-500">Todavía no hay propiedades publicadas.</li>
-        ) : (
-          properties.map((p) => {
-            const details = [
-              p.bedrooms != null && `${p.bedrooms} dorm.`,
-              p.bathrooms != null && `${p.bathrooms} baño${p.bathrooms === 1 ? '' : 's'}`,
-              p.area != null && `${p.area} m²`,
-            ].filter(Boolean).join(' · ')
-
-            // Cerrar: el dueño cierra lo suyo; el admin cierra cualquiera de la org.
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] gap-6">
+          {properties.map((p) => {
+            // Cerrar: dueño o admin, solo si está activa.
             const canClose = p.status === 'activa' && (isOrgAdmin || p.ownerId === userId)
-            // Reabrir (volver a 'activa'): mismo rol que cerrar, pero cuando NO está activa.
+            // Reabrir: dueño o admin, cuando NO está activa.
             const canReopen = p.status !== 'activa' && (isOrgAdmin || p.ownerId === userId)
-            // Editar: mismo criterio dueño-o-admin (sin importar el status).
+            // Editar: dueño o admin, sin importar el status.
             const canEdit = isOrgAdmin || p.ownerId === userId
 
             return (
-              <li key={p.id} className="border rounded p-4">
-                <div className="flex justify-between items-start gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold">{p.title}</span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${statusStyles[p.status] ?? 'bg-gray-100 text-gray-700'}`}>
-                      {p.status}
-                    </span>
-                  </div>
-                  <span>${p.price.toLocaleString('es-AR')}</span>
+              <Card key={p.id} className="gap-0 py-0 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+                <div className="relative flex aspect-[3/2] items-center justify-center bg-gradient-to-br from-[#ddd2bd] to-[#c9bca1]">
+                  <ImageIcon className="size-9 text-[#a99b81]" />
+                  <Badge className={cn('absolute left-3 top-3 gap-1.5 border-transparent capitalize', statusStyles[p.status] ?? '')}>
+                    <span className="size-1.5 rounded-full bg-current" />
+                    {p.status}
+                  </Badge>
                 </div>
-                <p className="text-sm text-gray-500">{p.address} · {p.operation} · {p.type}</p>
-                {details && <p className="text-sm text-gray-500">{details}</p>}
-                {p.description && <p className="text-sm mt-1">{p.description}</p>}
+
+                <CardContent className="flex flex-1 flex-col px-5 pt-4 pb-5">
+                  <div className="mb-2 flex gap-2">
+                    <Badge variant="outline" className="border-[#c6d6cd] bg-accent capitalize text-primary">{p.operation}</Badge>
+                    <Badge variant="secondary" className="capitalize text-muted-foreground">{p.type}</Badge>
+                  </div>
+                  <h3 className="font-serif text-xl font-semibold">{p.title}</h3>
+                  <div className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <MapPinIcon className="size-3.5 shrink-0" />
+                    {p.address}
+                  </div>
+                  {p.description && (
+                    <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{p.description}</p>
+                  )}
+                  {(p.bedrooms != null || p.bathrooms != null || p.area != null) && (
+                    <div className="mt-3.5 flex flex-wrap gap-4 border-y border-border py-3 text-sm font-semibold">
+                      {p.bedrooms != null && (
+                        <span className="flex items-center gap-1.5"><BedDoubleIcon className="size-4 text-terracotta" /> {p.bedrooms} amb.</span>
+                      )}
+                      {p.bathrooms != null && (
+                        <span className="flex items-center gap-1.5"><BathIcon className="size-4 text-terracotta" /> {p.bathrooms} baño{p.bathrooms === 1 ? '' : 's'}</span>
+                      )}
+                      {p.area != null && (
+                        <span className="flex items-center gap-1.5"><RulerIcon className="size-4 text-terracotta" /> {p.area} m²</span>
+                      )}
+                    </div>
+                  )}
+                  <div className="mt-auto pt-3.5 font-serif text-2xl font-semibold text-primary">
+                    ${p.price.toLocaleString('es-AR')}
+                    {p.operation === 'alquiler' && (
+                      <span className="ml-1 text-sm font-semibold text-muted-foreground">/ mes</span>
+                    )}
+                  </div>
+                </CardContent>
 
                 {(canEdit || canClose || canReopen || canDelete) && (
-                  <div className="flex gap-2 mt-3">
+                  <CardFooter className="gap-2">
                     {canEdit && (
-                      <Link href={`/properties/${p.id}/edit`} className="text-sm border rounded px-3 py-1">
-                        Editar
-                      </Link>
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href={`/properties/${p.id}/edit`}><PencilIcon /> Editar</Link>
+                      </Button>
                     )}
                     {canClose && (
                       <form action={closeProperty}>
                         <input type="hidden" name="id" value={p.id} />
                         <input type="hidden" name="operation" value={p.operation} />
-                        <button type="submit" className="text-sm border rounded px-3 py-1">
-                          Marcar como {p.operation === 'venta' ? 'vendida' : 'alquilada'}
-                        </button>
+                        <Button type="submit" variant="outline" size="sm" className="border-[#c6d6cd] text-primary hover:bg-accent hover:text-primary">
+                          <CheckIcon /> Marcar {p.operation === 'venta' ? 'vendida' : 'alquilada'}
+                        </Button>
                       </form>
                     )}
                     {canReopen && (
                       <form action={reopenProperty}>
                         <input type="hidden" name="id" value={p.id} />
-                        <button type="submit" className="text-sm border rounded px-3 py-1">
-                          Marcar como disponible
-                        </button>
+                        <Button type="submit" variant="outline" size="sm" className="border-[#c6d6cd] text-primary hover:bg-accent hover:text-primary">
+                          <RotateCcwIcon /> Disponible
+                        </Button>
                       </form>
                     )}
                     {canDelete && (
-                      <form action={deleteProperty}>
+                      <form action={deleteProperty} className="ml-auto">
                         <input type="hidden" name="id" value={p.id} />
-                        <DeletePropertyButton title={p.title} className="text-sm border rounded px-3 py-1 text-red-600" />
+                        <DeletePropertyButton title={p.title} />
                       </form>
                     )}
-                  </div>
+                  </CardFooter>
                 )}
-              </li>
+              </Card>
             )
-          })
-        )}
-      </ul>
-    </main>
+          })}
+        </div>
+      )}
+    </>
   )
 }
