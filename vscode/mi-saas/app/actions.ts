@@ -7,6 +7,7 @@ import prisma from '@/lib/prisma'
 import { ownedOrAdminScope } from '@/lib/property-scope'
 import { FREE_LIMIT } from '@/lib/plan'
 import { del } from '@vercel/blob'
+import { randomInt } from 'crypto'
 
 // Parsea un campo numérico opcional del formulario: '' o inválido -> null.
 function optionalInt(value: FormDataEntryValue | null): number | null {
@@ -15,12 +16,33 @@ function optionalInt(value: FormDataEntryValue | null): number | null {
   return Number.isFinite(n) ? Math.trunc(n) : null
 }
 
+// Alfabeto legible: sin caracteres ambiguos (0/O, 1/I/L) para que el código se
+// pueda dictar o tipear sin confusiones.
+const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
+
+function randomCode(length = 6): string {
+  let out = ''
+  for (let i = 0; i < length; i++) out += CODE_ALPHABET[randomInt(CODE_ALPHABET.length)]
+  return out
+}
+
+// Genera un código público único; reintenta si colisiona (muy improbable).
+async function generateUniqueCode(): Promise<string> {
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const code = randomCode()
+    const existing = await prisma.property.findUnique({ where: { code }, select: { id: true } })
+    if (!existing) return code
+  }
+  throw new Error('No se pudo generar un código único para la propiedad')
+}
+
 export async function createProperty(formData: FormData) {
   const { userId, orgId, has } = await auth()
   if (!userId) return
 
   const title = (formData.get('title') as string)?.trim()
   const address = (formData.get('address') as string)?.trim()
+  const locality = (formData.get('locality') as string)?.trim() || null
   const price = Number(formData.get('price'))
   const operation = formData.get('operation') as string
   const type = formData.get('type') as string
@@ -42,17 +64,20 @@ export async function createProperty(formData: FormData) {
 
   const images = formData.getAll('images').filter((v): v is string => typeof v === 'string')
 
+  const code = await generateUniqueCode()
+
   await prisma.property.create({
     data: {
-      title, address, price, operation, type, description,
+      code, title, address, locality, price, operation, type, description,
       bedrooms, bathrooms, area, images,
       ownerId: userId,
       organizationId: orgId ?? null, // null = propietario directo
     },
   })
 
+  revalidatePath('/dashboard')
   revalidatePath('/')
-  redirect('/')
+  redirect('/dashboard')
 }
 
 export async function updateProperty(formData: FormData) {
@@ -64,6 +89,7 @@ export async function updateProperty(formData: FormData) {
 
   const title = (formData.get('title') as string)?.trim()
   const address = (formData.get('address') as string)?.trim()
+  const locality = (formData.get('locality') as string)?.trim() || null
   const price = Number(formData.get('price'))
   const operation = formData.get('operation') as string
   const type = formData.get('type') as string
@@ -85,7 +111,7 @@ export async function updateProperty(formData: FormData) {
   // No se tocan ownerId/organizationId/status: solo el contenido editable.
   await prisma.property.updateMany({
     where,
-    data: { title, address, price, operation, type, description, bedrooms, bathrooms, area, images },
+    data: { title, address, locality, price, operation, type, description, bedrooms, bathrooms, area, images },
   })
 
   // Limpieza de blobs: borrar del store las imágenes que ya no se usan (best-effort).
@@ -98,8 +124,9 @@ export async function updateProperty(formData: FormData) {
     }
   }
 
+  revalidatePath('/dashboard')
   revalidatePath('/')
-  redirect('/')
+  redirect('/dashboard')
 }
 
 export async function deleteProperty(formData: FormData) {
@@ -129,6 +156,7 @@ export async function deleteProperty(formData: FormData) {
     }
   }
 
+  revalidatePath('/dashboard')
   revalidatePath('/')
 }
 
@@ -149,6 +177,7 @@ export async function closeProperty(formData: FormData) {
     data: { status },
   })
 
+  revalidatePath('/dashboard')
   revalidatePath('/')
 }
 
@@ -166,5 +195,6 @@ export async function reopenProperty(formData: FormData) {
     data: { status: 'activa' },
   })
 
+  revalidatePath('/dashboard')
   revalidatePath('/')
 }

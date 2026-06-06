@@ -12,11 +12,13 @@ import {
 } from '@/components/ui/select'
 import { ImageUploader } from './image-uploader'
 import { SubmitButton } from '@/app/submit-button'
+import { LOCALITIES } from '@/lib/localities'
 
 type PropertyValues = {
   id: string
   title: string
   address: string
+  locality: string | null
   price: number
   operation: string
   type: string
@@ -50,6 +52,18 @@ export function PropertyForm({
       <div className="space-y-1.5">
         <Label htmlFor="address">Dirección <span className="text-destructive" aria-hidden="true">*</span></Label>
         <Input id="address" name="address" required defaultValue={property?.address} placeholder="Ej. Av. Santa Fe 3400, CABA" />
+      </div>
+
+      <div className="space-y-1.5">
+        <Label>Localidad / zona</Label>
+        <Select name="locality" defaultValue={property?.locality ?? undefined}>
+          <SelectTrigger className="w-full"><SelectValue placeholder="Elegí una localidad" /></SelectTrigger>
+          <SelectContent>
+            {LOCALITIES.map((l) => (
+              <SelectItem key={l} value={l}>{l}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="space-y-1.5">
@@ -107,7 +121,7 @@ export function PropertyForm({
       <div className="flex gap-3">
         <SubmitButton>{submitLabel}</SubmitButton>
         <Button variant="outline" asChild>
-          <Link href="/">Cancelar</Link>
+          <Link href="/dashboard">Cancelar</Link>
         </Button>
       </div>
     </form>

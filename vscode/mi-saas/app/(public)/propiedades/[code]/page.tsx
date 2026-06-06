@@ -1,10 +1,8 @@
-import { auth } from '@clerk/nextjs/server'
-import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { notFound } from 'next/navigation'
 import prisma from '@/lib/prisma'
-import { cn } from '@/lib/utils'
+import { Gallery } from '@/components/gallery'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import {
   ArrowLeftIcon,
   MapPinIcon,
@@ -12,34 +10,19 @@ import {
   BathIcon,
   RulerIcon,
   ImageIcon,
-  PencilIcon,
 } from 'lucide-react'
-import { Gallery } from '@/app/properties/gallery'
+import { LeadForm } from './lead-form'
 
-const statusStyles: Record<string, string> = {
-  activa: 'bg-[#e0eae1] text-[#264e41]',
-  vendida: 'bg-[#edddcf] text-[#8e4019]',
-  alquilada: 'bg-[#efe3c5] text-[#7b500f]',
-}
+export default async function PublicPropertyPage({ params }: { params: Promise<{ code: string }> }) {
+  const { code } = await params
 
-export default async function PropertyDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { userId, orgId, orgRole } = await auth()
-  if (!userId) redirect('/')
-
-  const { id } = await params
-
-  // Scope de contexto (igual que el listado del home): cualquier propiedad visible en
-  // la lista se puede abrir. Lo cross-tenant queda afuera (org activa, o personal + null).
+  // Ficha pública: se busca por código y solo si está activa. Cross-tenant a
+  // propósito (cualquier publicador). Si no existe o no está activa → 404.
   const property = await prisma.property.findFirst({
-    where: orgId
-      ? { id, organizationId: orgId }
-      : { id, ownerId: userId, organizationId: null },
+    where: { code: code.toUpperCase(), status: 'activa' },
   })
 
-  if (!property) redirect('/')
-
-  // Solo para mostrar el botón de editar (la frontera real es la Server Action).
-  const canEdit = orgRole === 'org:admin' || property.ownerId === userId
+  if (!property) notFound()
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -62,17 +45,16 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="outline" className="border-[#c6d6cd] bg-accent capitalize text-primary">{property.operation}</Badge>
           <Badge variant="secondary" className="capitalize text-muted-foreground">{property.type}</Badge>
-          <Badge className={cn('gap-1.5 border-transparent capitalize', statusStyles[property.status] ?? '')}>
-            <span className="size-1.5 rounded-full bg-current" />
-            {property.status}
-          </Badge>
+          <span className="ml-auto rounded-md bg-secondary px-2 py-0.5 font-mono text-xs font-semibold tracking-wider text-muted-foreground">
+            Cód. {property.code}
+          </span>
         </div>
 
         <h1 className="mt-3 font-serif text-3xl font-semibold text-primary sm:text-4xl">{property.title}</h1>
 
         <div className="mt-2 flex items-center gap-1.5 text-muted-foreground">
           <MapPinIcon className="size-4 shrink-0" />
-          {property.address}
+          {property.locality ? `${property.locality} · ${property.address}` : property.address}
         </div>
 
         <div className="mt-4 font-serif text-3xl font-semibold text-primary">
@@ -103,11 +85,10 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
           </div>
         )}
 
-        {canEdit && (
-          <Button variant="outline" asChild className="mt-6">
-            <Link href={`/properties/${property.id}/edit`}><PencilIcon /> Editar</Link>
-          </Button>
-        )}
+        <div className="mt-8">
+          <h2 className="mb-3 font-serif text-xl font-semibold text-primary">Consultar por esta propiedad</h2>
+          <LeadForm propertyId={property.id} />
+        </div>
       </div>
     </div>
   )

@@ -39,5 +39,6 @@ export async function deleteOrganization(formData: FormData) {
   const client = await clerkClient()
   await client.organizations.deleteOrganization(organizationId)
 
-  revalidatePath('/admin')
+  revalidatePath('/dashboard/admin')
+  revalidatePath('/')
 }

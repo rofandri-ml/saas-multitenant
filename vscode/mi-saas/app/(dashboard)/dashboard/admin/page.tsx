@@ -15,7 +15,7 @@ export default async function AdminPage() {
 
   // Solo el Super Admin entra; cualquier otro vuelve al inicio
   if (!userId || !superAdminIds.includes(userId)) {
-    redirect('/')
+    redirect('/dashboard')
   }
 
   const client = await clerkClient()

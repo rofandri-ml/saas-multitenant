@@ -9,8 +9,10 @@ datasource db {
 
 model Property {
   id             String   @id @default(cuid())
+  code           String   @unique // código público legible (6 caracteres alfanuméricos)
   title          String
   address        String
+  locality       String?  // localidad / zona (de una lista fija, ver lib/localities.ts)
   price          Int
   operation      String   // "venta" | "alquiler"
   type           String   // "casa" | "departamento" | "terreno" | "local"
@@ -24,7 +26,22 @@ model Property {
   organizationId String?  // null = propietario directo; con valor = inmobiliaria
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+  leads          Lead[]
 
   @@index([organizationId])
   @@index([ownerId])
+}
+
+// Consulta pública sobre una propiedad (la deja cualquier interesado, sin login).
+model Lead {
+  id         String   @id @default(cuid())
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  name       String
+  email      String
+  phone      String?
+  message    String
+  createdAt  DateTime @default(now())
+
+  @@index([propertyId])
 }

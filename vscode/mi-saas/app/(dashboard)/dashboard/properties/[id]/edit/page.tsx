@@ -3,11 +3,11 @@ import { redirect } from 'next/navigation'
 import prisma from '@/lib/prisma'
 import { ownedOrAdminScope } from '@/lib/property-scope'
 import { updateProperty } from '@/app/actions'
-import { PropertyForm } from '@/app/properties/property-form'
+import { PropertyForm } from '../../property-form'
 
 export default async function EditPropertyPage({ params }: { params: Promise<{ id: string }> }) {
   const { userId, orgId, orgRole } = await auth()
-  if (!userId) redirect('/')
+  if (!userId) redirect('/dashboard')
 
   const { id } = await params
 
@@ -17,7 +17,7 @@ export default async function EditPropertyPage({ params }: { params: Promise<{ i
     where: ownedOrAdminScope(id, userId, orgId, orgRole),
   })
 
-  if (!property) redirect('/')
+  if (!property) redirect('/dashboard')
 
   return (
     <div className="mx-auto max-w-2xl">

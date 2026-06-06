@@ -2,8 +2,8 @@ import { auth, clerkClient } from '@clerk/nextjs/server'
 import Link from 'next/link'
 import Image from 'next/image'
 import prisma from '@/lib/prisma'
-import { deleteProperty, closeProperty, reopenProperty } from './actions'
-import { DeletePropertyButton } from './delete-property-button'
+import { deleteProperty, closeProperty, reopenProperty } from '@/app/actions'
+import { DeletePropertyButton } from '@/app/delete-property-button'
 import { FREE_LIMIT } from '@/lib/plan'
 import { cn } from '@/lib/utils'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
@@ -83,13 +83,13 @@ export default async function Page() {
           {atLimit ? (
             <div className="rounded-xl border border-border bg-card px-4 py-2.5 text-sm">
               <p className="text-muted-foreground">Alcanzaste el límite de tu plan ({FREE_LIMIT} propiedades).</p>
-              <Link href="/pricing" className="font-semibold text-primary underline underline-offset-2">
+              <Link href="/dashboard/pricing" className="font-semibold text-primary underline underline-offset-2">
                 Mejorá tu plan para publicar más
               </Link>
             </div>
           ) : (
             <Button asChild>
-              <Link href="/properties/new"><PlusIcon /> Publicar propiedad</Link>
+              <Link href="/dashboard/properties/new"><PlusIcon /> Publicar propiedad</Link>
             </Button>
           )}
         </div>
@@ -107,7 +107,7 @@ export default async function Page() {
           </div>
           {!atLimit && (
             <Button asChild className="mt-1">
-              <Link href="/properties/new"><PlusIcon /> Publicar propiedad</Link>
+              <Link href="/dashboard/properties/new"><PlusIcon /> Publicar propiedad</Link>
             </Button>
           )}
         </div>
@@ -123,7 +123,7 @@ export default async function Page() {
 
             return (
               <Card key={p.id} className="gap-0 py-0 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-                <Link href={`/properties/${p.id}`} className="flex flex-1 flex-col">
+                <Link href={`/dashboard/properties/${p.id}`} className="flex flex-1 flex-col">
                 <div className="relative aspect-[3/2] overflow-hidden bg-gradient-to-br from-[#ddd2bd] to-[#c9bca1]">
                   {p.images.length > 0 ? (
                     <Image
@@ -142,6 +142,9 @@ export default async function Page() {
                     <span className="size-1.5 rounded-full bg-current" />
                     {p.status}
                   </Badge>
+                  <span className="absolute right-3 top-3 rounded-md bg-black/55 px-2 py-0.5 font-mono text-xs font-semibold tracking-wider text-white backdrop-blur-sm">
+                    {p.code}
+                  </span>
                 </div>
 
                 <CardContent className="flex flex-1 flex-col px-5 pt-4 pb-5">
@@ -152,7 +155,7 @@ export default async function Page() {
                   <h3 className="font-serif text-xl font-semibold">{p.title}</h3>
                   <div className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
                     <MapPinIcon className="size-3.5 shrink-0" />
-                    {p.address}
+                    {p.locality ? `${p.locality} · ${p.address}` : p.address}
                   </div>
                   {p.description && (
                     <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{p.description}</p>
@@ -183,7 +186,7 @@ export default async function Page() {
                   <CardFooter className="gap-2">
                     {canEdit && (
                       <Button variant="outline" size="sm" asChild>
-                        <Link href={`/properties/${p.id}/edit`}><PencilIcon /> Editar</Link>
+                        <Link href={`/dashboard/properties/${p.id}/edit`}><PencilIcon /> Editar</Link>
                       </Button>
                     )}
                     {canClose && (

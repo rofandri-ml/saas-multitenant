@@ -1,92 +1,3 @@
-#################################################################################################################################################################################################################################################################################################################
-
-
-### ACTUALIZACION 3/6/2026
-
-> ⚠️ **SUPERADO POR EL BLOQUE `4/6/2026` (más abajo). NO USAR.**
-> Se conserva solo como historial. En particular, su regla *"TODA consulta filtra por
-> `organizationId`"* quedó **obsoleta**: el contexto de cuenta personal usa
-> `organizationId: null` (scope por `ownerId`). La guía vigente es la del 4/6.
-
-# CLAUDE.md
-
-Guía del proyecto para Claude Code. Leé esto antes de tocar el código.
-
-## Qué estamos construyendo
-
-Plantilla SaaS multi-tenant con white-labeling: una plataforma donde se dan de alta organizaciones (tenants), cada una con su espacio aislado y personalizable. Pensada para adaptarse a distintos rubros.
-
-Tres niveles de acceso:
-
-- **Super Admin** (dueño de la plataforma): ve y gestiona todas las organizaciones. Se identifica por la variable `SUPER_ADMIN_IDS` (IDs de usuario de Clerk, separados por coma), chequeada en el servidor. Su panel está en `/admin`.
-- **Admin del tenant** (rol `org:admin` de Clerk): gestiona su organización, su branding y sus ajustes (`/settings`).
-- **Usuario final** (rol `org:member`): usa la app dentro de su organización.
-
-## Stack
-
-- **Framework**: Next.js 16 (App Router) + TypeScript estricto. **Sin carpeta `src/`**: el código vive en `app/`.
-- **Auth + multi-tenancy + billing**: Clerk. Las Organizations = tenants. Billing con Clerk Billing (usa Stripe por debajo), planes "for Organizations".
-- **Base de datos**: PostgreSQL en Neon, con Prisma v7.
-- **UI**: Tailwind CSS v4 (sin archivo de config; se configura desde el CSS).
-- **Deploy**: Vercel.
-- **Entorno local**: Windows nativo, terminal PowerShell, Node 22, pnpm.
-
-## Detalles del stack que importan (gotchas)
-
-- **Middleware**: en Next.js 16 el archivo se llama `proxy.ts` (NO `middleware.ts`), en la raíz. Usa `clerkMiddleware()`.
-- **Prisma v7**: el cliente se genera en `app/generated/prisma` (generator `prisma-client`). Importar SIEMPRE desde `'../app/generated/prisma/client'` (con `/client` al final). La conexión usa el adapter `@prisma/adapter-pg`. La `DATABASE_URL` se configura en `prisma.config.ts` (que lee `.env` vía dotenv), NO en el bloque `datasource` del schema.
-- **Cliente de DB**: usar siempre el singleton de `lib/prisma.ts`. No crear instancias nuevas de PrismaClient.
-- **Entorno**: todas las variables en un único `.env` en la raíz (claves de Clerk + `DATABASE_URL`). El `.env.example` solo tiene placeholders.
-
-## Estructura
-
-- `app/` — rutas y páginas (App Router)
-- `app/admin/` — panel de Super Admin (vista de todos los tenants)
-- `app/settings/` — personalización del tenant (white-label, solo admin)
-- `app/pricing/` — tabla de planes (`<PricingTable />` de Clerk)
-- `app/actions.ts`, `app/settings/actions.ts` — Server Actions
-- `lib/prisma.ts` — cliente de Prisma (singleton)
-- `prisma/` — `schema.prisma` y migraciones
-- `app/generated/prisma/` — cliente generado (NO versionar)
-
-## Comandos
-
-```bash
-pnpm dev                          # local en http://localhost:3000
-npx prisma migrate dev --name x   # crear/aplicar una migración
-npx prisma studio                 # visor de la base
-npx prisma generate               # regenerar el cliente tras cambiar el schema
-```
-
-## Reglas críticas (no negociables)
-
-- **Aislamiento por tenant**: TODA consulta a la base filtra por `organizationId`, tomado de `auth()` (el `orgId` de Clerk). Nunca devolver ni escribir datos sin ese filtro.
-- **Secretos solo en `.env`** (nunca en el código, nunca pegados en un chat). El `.env` está en `.gitignore`.
-- **Roles del lado del servidor**: las acciones sensibles chequean `orgRole === 'org:admin'` en el servidor (Server Action / Route Handler). El panel `/admin` chequea `SUPER_ADMIN_IDS`. Nunca confiar solo en la UI.
-
-## White-label
-
-El branding por organización (lema, color de acento) se guarda en el `publicMetadata` de la organización en Clerk, vía `updateOrganizationMetadata(orgId, { publicMetadata })` (solo admin lo escribe). Se lee desde `organization.publicMetadata`.
-
-## Billing
-
-Clerk Billing. Los planes "for Organizations" se definen en el dashboard de Clerk. Página de precios con `<PricingTable />`. Para gatear features según el plan, usar `has({ plan })` o `has({ feature })` del lado del servidor.
-
-## Cuando tengas dudas
-
-Pará y preguntá antes de: tocar producción, cambiar el stack, modificar el modelo de datos de forma que rompa migraciones, o cualquier acción irreversible. Cambios chicos y verificables, probados en local antes de avanzar.
-
-## Tooling (MCP)
-
-GitHub para versionado. Más adelante: Figma (diseños), Postman (probar endpoints), Notion o Jira (roadmap por fases).
-
-#################################################################################################################################################################################################################################################################################################################
-
-
-### ACTUALIZACION 4/6/2026
-
-
-
 # CLAUDE.md
 
 Guía del proyecto para Claude Code. Leé esto antes de tocar el código.
@@ -214,3 +125,88 @@ Pará y preguntá antes de: tocar producción, cambiar el stack, modificar el mo
 ## Tooling (MCP)
 
 GitHub para versionado. Más adelante: Figma, Postman, Notion/Jira (roadmap).
+
+#################################################################################################################################################################################################################################################################################################################
+
+
+### ACTUALIZACION 4/6/2026
+
+# CLAUDE.md
+
+Guía del proyecto para Claude Code. Leé esto antes de tocar el código.
+
+## Qué estamos construyendo
+
+Un **portal inmobiliario** con dos caras, sobre un núcleo multi-tenant reutilizable:
+
+- **Sitio público** (`/`, sin login): un único portal donde se navegan TODOS los avisos activos (de individuos y de inmobiliarias), con búsqueda y filtros, ficha de cada propiedad y formulario de consulta. Pensado para sumar más espacios públicos a futuro.
+- **Panel de gestión** (`/dashboard/*`, con login): donde los publicadores administran sus propiedades, consultas, ajustes y branding.
+
+Dos tipos de publicador conviven:
+- **Propietario directo**: cuenta personal de Clerk (sin organización).
+- **Inmobiliaria**: organización de Clerk (el tenant); sus agentes publican bajo la agencia.
+
+(Cuentas personales habilitadas: "membership required" desactivado en Clerk.)
+
+## Niveles de acceso
+
+- **Super Admin** (plataforma): `SUPER_ADMIN_IDS`, chequeo server-side. Panel en `/dashboard/admin`.
+- **Admin de inmobiliaria** (`org:admin`): gestiona su org, branding y ajustes (`/dashboard/settings`).
+- **Agente** (`org:member`): publica y gestiona propiedades de su inmobiliaria.
+- **Propietario directo** (cuenta personal): gestiona sus propias propiedades.
+
+## Ruteo (route groups)
+
+- `app/(public)/` — público, **sin login**: `/` (listado + búsqueda/filtros), `/propiedades/[code]` (ficha + formulario de consulta). Layout propio (logo, buscador, "Publicar"/"Ingresar").
+- `app/(dashboard)/` — panel, **con login**, bajo `/dashboard`: home de gestión, `/dashboard/properties/new`, `/dashboard/properties/[id]/edit`, `/dashboard/settings`, `/dashboard/admin`, `/dashboard/pricing`, `/dashboard/consultas`. Header cálido (marca + switcher + user).
+- `<ClerkProvider>` en el layout raíz.
+
+## Stack
+
+- Next.js 16 (App Router) + TypeScript. Sin `src/` (código en `app/`).
+- Clerk: auth + organizaciones (= inmobiliarias) + Billing (planes "for Organizations"); localizado al español (`esES`).
+- PostgreSQL en Neon + Prisma v7.
+- Tailwind v4 + shadcn/ui. Fuentes: Fraunces (títulos) + Hanken Grotesk (cuerpo).
+- Vercel Blob (fotos, client uploads). Resend (emails de consultas).
+- Deploy: Vercel. Local: Windows, PowerShell, Node 22, pnpm.
+
+## Gotchas del stack
+
+- Middleware: `proxy.ts` (NO `middleware.ts`) en la raíz, con `clerkMiddleware()`. Rutas públicas accesibles sin login; `/dashboard/*` protegido.
+- Prisma v7: cliente en `app/generated/prisma` (generator `prisma-client`); importar de `'../app/generated/prisma/client'`; adapter `@prisma/adapter-pg`; `DATABASE_URL` en `prisma.config.ts`.
+- Cliente DB: singleton de `lib/prisma.ts`.
+- **Cambios de schema en Windows**: frená el dev server, corré `migrate dev`/`generate`, reiniciá (el server bloquea los archivos del cliente generado).
+- Variables en un único `.env`.
+
+## Reglas críticas
+
+- **Aislamiento por contexto** en el panel: toda query/mutación filtra por `organizationId: orgId` (org) o `ownerId: userId, organizationId: null` (personal); nunca por `id` solo. Helper `ownedOrAdminScope()`.
+- **Excepciones cross-tenant intencionales** (solo estas): el listado/ficha públicos (filtran solo por `status: 'activa'`) y el panel Super Admin (gateado por `SUPER_ADMIN_IDS`).
+- Permisos del lado del servidor; secretos en `.env`.
+
+## Dominio
+
+- **`Property`**: `title`, `address`, `price`, `operation` (venta/alquiler), `type` (casa/departamento/terreno/local), `status` (activa/vendida/alquilada), `bedrooms`/`bathrooms`/`area`, `images String[]` (URLs; la 1ª es portada), `code` (código público único), `locality` (de la lista en `lib/localities.ts`). Siempre con `ownerId` y `organizationId?` (null = propietario directo).
+- Permisos: crear (cualquier autenticado, lo suyo); cerrar/reabrir (dueño o admin); borrar (solo `org:admin` en org, o el dueño en personal); editar (dueño o admin).
+- **`Lead`** (consulta): `propertyId`, `name`, `email`, `phone?`, `message`, `createdAt`. Se crea desde la ficha pública (acción pública validada), se ven en `/dashboard/consultas` (scopeadas al owner) y se notifican por email (Resend) al destino de contacto del owner.
+
+## Fotos
+
+Subida **client-side** a Vercel Blob (`@vercel/blob/client`, vía `app/api/upload` con auth de Clerk en `onBeforeGenerateToken`). URLs en `Property.images`. Al borrar/editar propiedades o borrar orgs, se limpian los blobs con `del()`.
+
+## White-label / Billing
+
+- Branding por org (lema + color) en `publicMetadata`, vía `updateOrganizationMetadata` (solo admin).
+- Clerk Billing; gating: límite de propiedades en Free, ilimitado con el feature `unlimited_properties` (Pro).
+
+## Pendientes anotados
+
+- **lead_from_email** (remitente verificado de Resend) — se define en la puesta a producción.
+- **Avisos destacados / plan "Plus"** (C6) — pendiente de diseño.
+- **Roles y permisos** — revisar alcance en Clerk y política de creación de organizaciones antes de producción.
+- Onboarding de inmobiliarias; white-label ampliado; reordenar/portada de fotos.
+
+## Cuando tengas dudas
+
+Pará y preguntá antes de tocar producción, cambiar el stack, romper migraciones, o cualquier acción irreversible. Cambios chicos, verificables, probados en local.
+

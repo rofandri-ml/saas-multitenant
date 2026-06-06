@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 
 // Galería de la ficha: imagen grande + tira de miniaturas; al tocar una miniatura
 // se muestra ampliada arriba. (Solo presentación; no necesita deps externas.)
+// Compartida por la ficha del panel y la ficha pública.
 export function Gallery({ images, alt }: { images: string[]; alt: string }) {
   const [active, setActive] = useState(0)
 
