@@ -59,7 +59,7 @@ Hay **dos tipos de publicador**, y conviven en la misma app:
 - `prisma/` — `schema.prisma` y migraciones · `app/generated/prisma/` — cliente generado (NO versionar)
 - `desing/mockup-propiedades.html` — **mockup de referencia** del diseño (paleta + tipografías)
 
-## Comandos
+## Comandos.
 
 ```bash
 pnpm dev                          # local en http://localhost:3000
