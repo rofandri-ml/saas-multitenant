@@ -134,6 +134,58 @@ Checklist (es delicado; conviene guiarlo paso a paso):
 - [ ] **Onboarding de inmobiliarias**: definir cómo una agencia nueva obtiene su
       organización + plan (hoy la creación de orgs está restringida).
 
+######You are helping a user configure Clerk DNS for the production domain `sitiosprop.com`.
+
+First determine whether you already know which domain the user is configuring and whether you can directly access or modify DNS for that domain. Do not guess or claim access you do not have.
+
+If you can directly access the DNS provider or registrar and can safely edit DNS on the user's behalf:
+- Add or update the exact required records below.
+- Use the values exactly as written.
+- If the provider is Cloudflare or another proxying DNS service, make sure these CNAME records are DNS-only and not proxied.
+- After making changes, summarize exactly what you changed.
+
+If you are not sure you can modify DNS directly:
+- Determine the DNS provider or registrar by checking the domain's nameservers and registration data.
+- Useful commands include: `dig +short NS sitiosprop.com`, `whois sitiosprop.com`, and `nslookup -type=NS sitiosprop.com`.
+- If the provider has an API, CLI, or integration you can use, explain exactly what access, credentials, or connection the user needs to provide so you can edit the records.
+- Regardless, give the user clear manual steps to add the records through their DNS provider's interface.
+
+Use these exact Clerk DNS records. Do not transcribe values from screenshots.
+
+Required DNS records:
+- Type: CNAME
+  Host/Name: accounts
+  Full host: accounts.sitiosprop.com
+  Target/Value: accounts.clerk.services
+  Clerk status: unverified. Clerk did not receive the observed DNS value in the last check.
+- Type: CNAME
+  Host/Name: clerk
+  Full host: clerk.sitiosprop.com
+  Target/Value: frontend-api.clerk.services
+  Clerk status: unverified. Clerk did not receive the observed DNS value in the last check.
+- Type: CNAME
+  Host/Name: clk._domainkey
+  Full host: clk._domainkey.sitiosprop.com
+  Target/Value: dkim1.f9pe9dps8kfu.clerk.services
+  Clerk status: unverified. Clerk did not receive the observed DNS value in the last check.
+- Type: CNAME
+  Host/Name: clk2._domainkey
+  Full host: clk2._domainkey.sitiosprop.com
+  Target/Value: dkim2.f9pe9dps8kfu.clerk.services
+  Clerk status: unverified. Clerk did not receive the observed DNS value in the last check.
+- Type: CNAME
+  Host/Name: clkmail
+  Full host: clkmail.sitiosprop.com
+  Target/Value: mail.f9pe9dps8kfu.clerk.services
+  Clerk status: unverified. Clerk did not receive the observed DNS value in the last check.
+
+When a DNS UI asks for either a relative host or a full hostname, use whichever format that UI expects. The relative host values above are relative to `sitiosprop.com`.
+
+In your response to the user:
+- Explicitly say which records are missing.
+- Explicitly say which records exist but point to the wrong value.
+- Remind the user that the target values must match exactly.
+- Tell the user to run Clerk verification again after saving the DNS records.
 ---
 
 ## Backlog / pendientes anotados
@@ -156,3 +208,7 @@ Checklist (es delicado; conviene guiarlo paso a paso):
 - Ante cualquier **duda puntual o bug** que no resuelvas con Claude Code.
 
 Mientras tanto, dale con las Fases A y B tranquilo. ¡Éxitos!
+
+
+
+# se agrego nueva rama staging para pushear a preview preprod a vercel
