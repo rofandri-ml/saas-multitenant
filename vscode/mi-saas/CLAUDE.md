@@ -160,6 +160,8 @@ Dos tipos de publicador conviven:
 - **Clerk**: app renombrada de "saas-multitenant" a **"SitiosProp"**; DNS de Clerk (incl. `clkmail`) en **DNS-only** en Cloudflare, SSL emitido.
 - **Blob**: resuelto — **un único Blob store** conectado al proyecto; el token lo gestiona la conexión (sin variable manual ni prefijo).
 - **Email (en configuración)**: Resend (verificación de dominio + `LEAD_FROM_EMAIL`) y casilla corporativa vía **Cloudflare Email Routing**.
+- **Tier 1 cerrado — modo privado reversible**: el sitio público queda detrás de un gate controlado por env vars (`PRIVATE_MODE` + `SITE_ACCESS_PASSWORD`), con página `/acceso` (cookie httpOnly `site_access`) y **noindex global**. El panel sigue protegido por Clerk. Reversible: `PRIVATE_MODE=false` + redeploy → público + indexable. Probado en **staging y producción**.
+- **Carga de contenido real**: org de prueba creada + colega invitado para carga colaborativa.
 
 ## Niveles de acceso
 
@@ -212,16 +214,28 @@ Subida **client-side** a Vercel Blob (`@vercel/blob/client`, vía `app/api/uploa
 - Branding por org (lema + color) en `publicMetadata`, vía `updateOrganizationMetadata` (solo admin).
 - Clerk Billing; gating: límite de propiedades en Free, ilimitado con el feature `unlimited_properties` (Pro).
 
-## Pendientes anotados
+## Tier 2 — en curso (orden de ejecución)
 
-- **Vercel Pro**: diferido (probando primero en Hobby; evaluar migración a **Cloudflare** por costos). ⚠️ Recordatorio: el plan **Hobby es no comercial**.
-- **Stripe real**: diferido → **`/dashboard/pricing` se ve en blanco** hasta cablear el billing en la instancia **prod** de Clerk.
-- **Migración de datos** del sitio actual; **onboarding de inmobiliarias**.
-- **Compatibilidad mobile**: en pantallas chicas el sitio no muestra el menú completo ni funciones importantes. Falta hacer responsive el header/navegación del **panel** y del **sitio público**, y revisar el resto de las vistas en mobile. A tratar en la tanda de mejoras de UI.
+1. **Quick wins**:
+   - Agregar **"Lucila del Mar"** a `lib/localities.ts`.
+   - **Ocultar / placeholder de `/dashboard/pricing`** hasta cablear Stripe (hoy se ve en blanco).
+   - **`reply-to` del cliente** en el mail de consulta (que el owner responda directo al interesado).
+2. **Galería pública**: fotos en formato **horizontal**, **carrusel** (desplazador) y **avance automático**.
+3. **Consulta por WhatsApp** en la ficha: número del owner en `publicMetadata` de org/usuario (mismo patrón que `contactEmail`); link `wa.me` con mensaje prearmado.
+4. **Moneda ARS/USD por propiedad**: campo `currency` en `Property` (**requiere migración**), selector en el form, display en card/ficha/listado, revisar el filtro de precio. *Decisión de diseño pendiente.*
+5. **Responsive mobile** (header/nav, listado, ficha) — **al final**, sobre las vistas ya feature-completas. En pantallas chicas hoy no se muestra el menú completo ni funciones importantes.
+
+## Backlog
+
+- **Automatizar el flujo de git (branch protection / "pipeline")**: que **no se pueda pushear directo a `main`** — el trabajo va a `staging` o a ramas de feature, y a `main` se llega **solo por PR con aprobación**. Opciones a evaluar: (a) **GitHub branch protection rules** sobre `main` (require pull request + approvals, bloquear push directo, opcional require status checks); (b) usar los **deploy previews de Vercel** como gate (revisar la preview antes de aprobar el PR); (c) integración GitHub↔Vercel para que `main` = Production y cada PR/`staging` = Preview. Buscar la forma más simple (probablemente branch protection en GitHub + previews de Vercel).
+- **Rediseñar / repensar el dashboard** (Tier 4/5; necesita diseño).
+- **Stripe real**: cablear billing en la instancia **prod** de Clerk (habilita `/dashboard/pricing`).
+- **Vercel Pro**: diferido (probando en Hobby; evaluar migración a **Cloudflare** por costos). ⚠️ Recordatorio: **Hobby es no comercial**.
 - **lead_from_email** (remitente verificado de Resend) — en configuración (ver "Estado: producción").
+- **Onboarding de inmobiliarias**.
 - **Avisos destacados / plan "Plus"** (C6) — pendiente de diseño.
 - **Roles y permisos** — revisar alcance en Clerk y política de creación de organizaciones.
-- White-label ampliado; reordenar/portada de fotos.
+- Otras vistas públicas; white-label ampliado; fotos avanzadas (reordenar/portada); **modo oscuro**.
 
 ## Cuando tengas dudas
 

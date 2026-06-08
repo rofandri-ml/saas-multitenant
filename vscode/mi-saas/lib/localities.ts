@@ -9,6 +9,7 @@ export const LOCALITIES = [
   'Mar de las Pampas',
   'Mar de Ajó',
   'San Bernardo',
+  'Lucila del Mar',
   'San Clemente del Tuyú',
   'Santa Teresita',
   'Necochea',

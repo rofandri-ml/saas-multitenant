@@ -50,7 +50,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
               <nav className="hidden items-center gap-1 md:flex">
                 <Link href="/dashboard" className={navLinkClass}>Propiedades</Link>
                 <Link href="/dashboard/consultas" className={navLinkClass}>Consultas</Link>
-                <Link href="/dashboard/pricing" className={navLinkClass}>Planes</Link>
+                {/* Oculto hasta cablear Clerk Billing/Stripe en prod (la página es un placeholder).
+                    Revertir: descomentar este link. */}
+                {/* <Link href="/dashboard/pricing" className={navLinkClass}>Planes</Link> */}
                 {canAccessSettings && (
                   <Link href="/dashboard/settings" className={navLinkClass}>Ajustes</Link>
                 )}
