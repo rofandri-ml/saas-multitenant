@@ -12,6 +12,8 @@ const hankenGrotesk = Hanken_Grotesk({ variable: '--font-hanken', subsets: ['lat
 export const metadata: Metadata = {
   title: 'Hogar · Portal inmobiliario',
   description: 'Publicá y encontrá propiedades',
+  // Modo privado (pre-lanzamiento): noindex/nofollow global. Reversible por env var.
+  ...(process.env.PRIVATE_MODE === 'true' && { robots: { index: false, follow: false } }),
 }
 
 // Apariencia de los componentes de Clerk, alineada a la paleta del tema.

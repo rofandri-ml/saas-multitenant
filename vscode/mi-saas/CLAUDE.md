@@ -148,6 +148,19 @@ Dos tipos de publicador conviven:
 
 (Cuentas personales habilitadas: "membership required" desactivado en Clerk.)
 
+## Estado: producción (go-live)
+
+- **ONLINE** en **https://sitiosprop.com** — HTTPS OK, certificado SSL verde, instancia de **Clerk producción** con SSL emitido.
+- **Auth prod OK**: **Google OAuth de producción** configurado; probados login con Google, cuenta personal y unión a organización.
+- **Deploy (pipeline OK)**:
+  - Build con `prisma generate && next build` (genera el cliente Prisma en cada build; el cliente está gitignoreado).
+  - **Root Directory en Vercel = `vscode/mi-saas`** (el repo es `saas-multitenant/`, la app vive en la subcarpeta).
+  - Branch **`staging`** para deploy previews; `main` = producción.
+  - Env vars de producción cargadas en Vercel.
+- **Clerk**: app renombrada de "saas-multitenant" a **"SitiosProp"**; DNS de Clerk (incl. `clkmail`) en **DNS-only** en Cloudflare, SSL emitido.
+- **Blob**: resuelto — **un único Blob store** conectado al proyecto; el token lo gestiona la conexión (sin variable manual ni prefijo).
+- **Email (en configuración)**: Resend (verificación de dominio + `LEAD_FROM_EMAIL`) y casilla corporativa vía **Cloudflare Email Routing**.
+
 ## Niveles de acceso
 
 - **Super Admin** (plataforma): `SUPER_ADMIN_IDS`, chequeo server-side. Panel en `/dashboard/admin`.
@@ -201,10 +214,14 @@ Subida **client-side** a Vercel Blob (`@vercel/blob/client`, vía `app/api/uploa
 
 ## Pendientes anotados
 
-- **lead_from_email** (remitente verificado de Resend) — se define en la puesta a producción.
+- **Vercel Pro**: diferido (probando primero en Hobby; evaluar migración a **Cloudflare** por costos). ⚠️ Recordatorio: el plan **Hobby es no comercial**.
+- **Stripe real**: diferido → **`/dashboard/pricing` se ve en blanco** hasta cablear el billing en la instancia **prod** de Clerk.
+- **Migración de datos** del sitio actual; **onboarding de inmobiliarias**.
+- **Compatibilidad mobile**: en pantallas chicas el sitio no muestra el menú completo ni funciones importantes. Falta hacer responsive el header/navegación del **panel** y del **sitio público**, y revisar el resto de las vistas en mobile. A tratar en la tanda de mejoras de UI.
+- **lead_from_email** (remitente verificado de Resend) — en configuración (ver "Estado: producción").
 - **Avisos destacados / plan "Plus"** (C6) — pendiente de diseño.
-- **Roles y permisos** — revisar alcance en Clerk y política de creación de organizaciones antes de producción.
-- Onboarding de inmobiliarias; white-label ampliado; reordenar/portada de fotos.
+- **Roles y permisos** — revisar alcance en Clerk y política de creación de organizaciones.
+- White-label ampliado; reordenar/portada de fotos.
 
 ## Cuando tengas dudas
 
