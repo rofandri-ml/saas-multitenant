@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import prisma from '@/lib/prisma'
 import { ownedOrAdminScope } from '@/lib/property-scope'
+import { isSuperAdmin } from '@/lib/super-admin'
 import { FREE_LIMIT } from '@/lib/plan'
 import { del } from '@vercel/blob'
 import { randomInt } from 'crypto'
@@ -102,7 +103,8 @@ export async function updateProperty(formData: FormData) {
 
   const images = formData.getAll('images').filter((v): v is string => typeof v === 'string')
 
-  const where = ownedOrAdminScope(id, userId, orgId, orgRole)
+  // Super Admin: god-mode (cualquier propiedad). Resto: scope de contexto.
+  const where = ownedOrAdminScope(id, userId, orgId, orgRole, isSuperAdmin(userId))
 
   // Imágenes anteriores (mismo scope) para detectar las que se quitaron.
   const previous = await prisma.property.findFirst({ where, select: { images: true } })
@@ -136,11 +138,13 @@ export async function deleteProperty(formData: FormData) {
   const id = formData.get('id') as string
   if (!id) return
 
-  // Borrar es irreversible: en una org solo el admin puede.
-  // (Sin org, el propietario directo borra lo suyo vía el scope.)
-  if (orgId && orgRole !== 'org:admin') return
+  const superAdmin = isSuperAdmin(userId)
 
-  const where = ownedOrAdminScope(id, userId, orgId, orgRole)
+  // Borrar es irreversible: en una org solo el admin puede (el Super Admin, cualquiera).
+  // (Sin org, el propietario directo borra lo suyo vía el scope.)
+  if (orgId && orgRole !== 'org:admin' && !superAdmin) return
+
+  const where = ownedOrAdminScope(id, userId, orgId, orgRole, superAdmin)
 
   // Tomamos las imágenes (con el mismo scope) antes de borrar la propiedad.
   const property = await prisma.property.findFirst({ where, select: { images: true } })
@@ -171,9 +175,9 @@ export async function closeProperty(formData: FormData) {
   // venta -> vendida; alquiler -> alquilada.
   const status = operation === 'venta' ? 'vendida' : 'alquilada'
 
-  // El dueño cierra lo suyo; el admin cierra cualquiera de la org (lo resuelve el scope).
+  // El dueño cierra lo suyo; el admin cierra cualquiera de la org; el Super Admin, todas.
   await prisma.property.updateMany({
-    where: ownedOrAdminScope(id, userId, orgId, orgRole),
+    where: ownedOrAdminScope(id, userId, orgId, orgRole, isSuperAdmin(userId)),
     data: { status },
   })
 
@@ -189,9 +193,9 @@ export async function reopenProperty(formData: FormData) {
   if (!id) return
 
   // Inverso de closeProperty: vuelve la propiedad a 'activa' (disponible).
-  // El dueño reabre lo suyo; el admin cualquiera de la org (lo resuelve el scope).
+  // El dueño reabre lo suyo; el admin cualquiera de la org; el Super Admin, todas.
   await prisma.property.updateMany({
-    where: ownedOrAdminScope(id, userId, orgId, orgRole),
+    where: ownedOrAdminScope(id, userId, orgId, orgRole, isSuperAdmin(userId)),
     data: { status: 'activa' },
   })
 

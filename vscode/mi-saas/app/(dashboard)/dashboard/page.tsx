@@ -5,6 +5,7 @@ import prisma from '@/lib/prisma'
 import { deleteProperty, closeProperty, reopenProperty } from '@/app/actions'
 import { DeletePropertyButton } from '@/app/delete-property-button'
 import { FREE_LIMIT } from '@/lib/plan'
+import { isSuperAdmin } from '@/lib/super-admin'
 import { cn } from '@/lib/utils'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -37,11 +38,18 @@ export default async function Page() {
     return <p className="text-muted-foreground">Iniciá sesión para continuar.</p>
   }
 
-  // Contexto: inmobiliaria (org activa) o propietario directo (cuenta personal)
+  // Super Admin: god-mode (ve y gestiona TODAS las propiedades, cross-tenant).
+  const superAdmin = isSuperAdmin(userId)
+
+  // Contexto: Super Admin (plataforma) / inmobiliaria (org activa) / propietario directo.
   let heading = 'Mis propiedades'
+  let label = 'Tu portafolio'
   let tagline: string | undefined
   let accentColor: string | undefined
-  if (orgId) {
+  if (superAdmin) {
+    heading = 'Todas las propiedades'
+    label = 'Vista de plataforma · Super Admin'
+  } else if (orgId) {
     const client = await clerkClient()
     const org = await client.organizations.getOrganization({ organizationId: orgId })
     const branding = (org.publicMetadata ?? {}) as { tagline?: string; accentColor?: string }
@@ -51,27 +59,30 @@ export default async function Page() {
   }
 
   const properties = await prisma.property.findMany({
-    where: orgId
-      ? { organizationId: orgId }
-      : { ownerId: userId, organizationId: null },
+    where: superAdmin
+      ? {} // god-mode: todas, sin filtro de tenant
+      : orgId
+        ? { organizationId: orgId }
+        : { ownerId: userId, organizationId: null },
     orderBy: { createdAt: 'desc' },
   })
 
   // Gating por plan (mismo conteo de contexto que createProperty valida en el servidor).
+  // El Super Admin no tiene límite.
   const count = properties.length
-  const unlimited = has({ feature: 'unlimited_properties' })
+  const unlimited = superAdmin || has({ feature: 'unlimited_properties' })
   const atLimit = !unlimited && count >= FREE_LIMIT
 
-  // Permisos para la UI (el servidor es la frontera real). Borrar: sin org el dueño, en org solo admin.
+  // Permisos para la UI (el servidor es la frontera real). Super Admin: todo.
   const isOrgAdmin = orgRole === 'org:admin'
-  const canDelete = !orgId || isOrgAdmin
+  const canDelete = superAdmin || !orgId || isOrgAdmin
 
   return (
     <>
       {/* Intro */}
       <div className="mb-8 flex flex-wrap items-end justify-between gap-6">
         <div>
-          <div className="text-[13px] font-bold uppercase tracking-[0.08em] text-terracotta">Tu portafolio</div>
+          <div className="text-[13px] font-bold uppercase tracking-[0.08em] text-terracotta">{label}</div>
           <h1 className="mt-1 font-serif text-4xl font-semibold text-primary" style={{ color: accentColor }}>{heading}</h1>
           {tagline && <p className="mt-1 max-w-[46ch] text-muted-foreground">{tagline}</p>}
         </div>
@@ -114,12 +125,12 @@ export default async function Page() {
       ) : (
         <div className="grid grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] gap-6">
           {properties.map((p) => {
-            // Cerrar: dueño o admin, solo si está activa.
-            const canClose = p.status === 'activa' && (isOrgAdmin || p.ownerId === userId)
-            // Reabrir: dueño o admin, cuando NO está activa.
-            const canReopen = p.status !== 'activa' && (isOrgAdmin || p.ownerId === userId)
-            // Editar: dueño o admin, sin importar el status.
-            const canEdit = isOrgAdmin || p.ownerId === userId
+            // Cerrar: dueño, admin o Super Admin, solo si está activa.
+            const canClose = p.status === 'activa' && (superAdmin || isOrgAdmin || p.ownerId === userId)
+            // Reabrir: dueño, admin o Super Admin, cuando NO está activa.
+            const canReopen = p.status !== 'activa' && (superAdmin || isOrgAdmin || p.ownerId === userId)
+            // Editar: dueño, admin o Super Admin, sin importar el status.
+            const canEdit = superAdmin || isOrgAdmin || p.ownerId === userId
 
             return (
               <Card key={p.id} className="gap-0 py-0 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">

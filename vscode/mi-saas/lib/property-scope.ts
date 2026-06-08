@@ -1,8 +1,10 @@
 // Scope de aislamiento por contexto para la entidad Property (least privilege):
+//  - Super Admin: cualquier propiedad (god-mode cross-tenant; gateado por SUPER_ADMIN_IDS).
 //  - sin org (propietario directo): solo las propias.
 //  - org admin: todas las de la org.
 //  - org member: solo las propias dentro de la org.
-// SIEMPRE se combina con el id; nunca se opera por id solo.
+// SIEMPRE se combina con el id; nunca se opera por id solo (salvo el god-mode del
+// Super Admin, que es la excepción cross-tenant deliberada).
 // Fuente única de verdad del scope: la usan las Server Actions (actions.ts) y la
 // página de edición (findFirst). No la dupliques.
 export function ownedOrAdminScope(
@@ -10,7 +12,9 @@ export function ownedOrAdminScope(
   userId: string,
   orgId: string | null | undefined,
   orgRole: string | null | undefined,
+  superAdmin = false,
 ) {
+  if (superAdmin) return { id } // god-mode: cualquier propiedad, sin filtro de tenant
   if (!orgId) return { id, ownerId: userId, organizationId: null }
   if (orgRole === 'org:admin') return { id, organizationId: orgId }
   return { id, organizationId: orgId, ownerId: userId }

@@ -6,15 +6,13 @@ import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { deleteOrganization } from './actions'
 import { DeleteOrganizationButton } from './delete-organization-button'
+import { isSuperAdmin } from '@/lib/super-admin'
 
 export default async function AdminPage() {
   const { userId } = await auth()
-  const superAdminIds = (process.env.SUPER_ADMIN_IDS ?? '')
-    .split(',')
-    .map((id) => id.trim())
 
   // Solo el Super Admin entra; cualquier otro vuelve al inicio
-  if (!userId || !superAdminIds.includes(userId)) {
+  if (!isSuperAdmin(userId)) {
     redirect('/dashboard')
   }
 

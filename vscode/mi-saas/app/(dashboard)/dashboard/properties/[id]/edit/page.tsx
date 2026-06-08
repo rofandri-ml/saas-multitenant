@@ -2,6 +2,7 @@ import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import prisma from '@/lib/prisma'
 import { ownedOrAdminScope } from '@/lib/property-scope'
+import { isSuperAdmin } from '@/lib/super-admin'
 import { updateProperty } from '@/app/actions'
 import { PropertyForm } from '../../property-form'
 
@@ -11,10 +12,10 @@ export default async function EditPropertyPage({ params }: { params: Promise<{ i
 
   const { id } = await params
 
-  // Mismo scope que las mutaciones: el findFirst solo alcanza lo que el usuario puede editar.
-  // Si no existe o no está en su contexto, lo mandamos al inicio (no revelamos que existe).
+  // Mismo scope que las mutaciones: el findFirst solo alcanza lo que el usuario puede editar
+  // (el Super Admin, cualquiera). Si no existe o no está en su contexto, al inicio.
   const property = await prisma.property.findFirst({
-    where: ownedOrAdminScope(id, userId, orgId, orgRole),
+    where: ownedOrAdminScope(id, userId, orgId, orgRole, isSuperAdmin(userId)),
   })
 
   if (!property) redirect('/dashboard')

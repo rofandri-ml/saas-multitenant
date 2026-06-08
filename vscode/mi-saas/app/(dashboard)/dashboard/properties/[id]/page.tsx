@@ -15,6 +15,7 @@ import {
   PencilIcon,
 } from 'lucide-react'
 import { Gallery } from '@/components/gallery'
+import { isSuperAdmin } from '@/lib/super-admin'
 
 const statusStyles: Record<string, string> = {
   activa: 'bg-[#e0eae1] text-[#264e41]',
@@ -27,19 +28,23 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
   if (!userId) redirect('/dashboard')
 
   const { id } = await params
+  const superAdmin = isSuperAdmin(userId)
 
   // Scope de contexto (igual que el listado del home): cualquier propiedad visible en
-  // la lista se puede abrir. Lo cross-tenant queda afuera (org activa, o personal + null).
+  // la lista se puede abrir. Lo cross-tenant queda afuera (org activa, o personal + null),
+  // salvo el Super Admin (god-mode): puede abrir cualquiera.
   const property = await prisma.property.findFirst({
-    where: orgId
-      ? { id, organizationId: orgId }
-      : { id, ownerId: userId, organizationId: null },
+    where: superAdmin
+      ? { id }
+      : orgId
+        ? { id, organizationId: orgId }
+        : { id, ownerId: userId, organizationId: null },
   })
 
   if (!property) redirect('/dashboard')
 
   // Solo para mostrar el botón de editar (la frontera real es la Server Action).
-  const canEdit = orgRole === 'org:admin' || property.ownerId === userId
+  const canEdit = superAdmin || orgRole === 'org:admin' || property.ownerId === userId
 
   return (
     <div className="mx-auto max-w-4xl">

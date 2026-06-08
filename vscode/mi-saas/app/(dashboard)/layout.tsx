@@ -7,6 +7,7 @@ import {
 } from '@clerk/nextjs'
 import { auth } from '@clerk/nextjs/server'
 import Link from 'next/link'
+import { isSuperAdmin } from '@/lib/super-admin'
 
 // Estilo compartido de los links de navegación (paleta cálida del header).
 const navLinkClass =
@@ -19,8 +20,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const isOrgAdmin = orgRole === 'org:admin'
   // Ajustes: el admin de la org, o una cuenta personal (sin org activa).
   const canAccessSettings = isOrgAdmin || !orgId
-  const superAdminIds = (process.env.SUPER_ADMIN_IDS ?? '').split(',').map((id) => id.trim())
-  const isSuperAdmin = userId != null && superAdminIds.includes(userId)
+  const superAdmin = isSuperAdmin(userId)
 
   return (
     <>
@@ -56,7 +56,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
                 {canAccessSettings && (
                   <Link href="/dashboard/settings" className={navLinkClass}>Ajustes</Link>
                 )}
-                {isSuperAdmin && (
+                {superAdmin && (
                   <Link href="/dashboard/admin" className={navLinkClass}>Plataforma</Link>
                 )}
               </nav>
